@@ -1,0 +1,152 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<LangVersion>10.0</LangVersion>
+
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+
+		<AssemblyName>SimpleProgression</AssemblyName>
+		<RootNamespace>SimpleProgression</RootNamespace>
+
+		<DefineConstants>$(DefineConstants);BepInEx</DefineConstants>
+		<LibsPath>$(ProjectDir)..\lib\</LibsPath>
+		<LatestGeneratedGameAssembliesPath>$(LibsPath)BepInEx\interop\</LatestGeneratedGameAssembliesPath>
+		<LoaderRootPath>$(LibsPath)BepInEx\core\</LoaderRootPath>
+		<DotnetPath>$(LibsPath)dotnet\</DotnetPath>
+
+		<GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+		<GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+		<GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+	</PropertyGroup>
+
+	<Target Name="CopyDLLTask" AfterTargets="Build" Condition="'$(ProfilePath)' != ''">
+		<Message Importance="High" Text="Copying dll into profile path: $(ProfilePath)" />
+		<Exec Command="xcopy &quot;$(OutputPath)$(AssemblyName).dll&quot; &quot;$(ProfilePath)\BepInEx\plugins\&quot; /F /Y" />
+	</Target>
+
+	<ItemGroup>
+		<!-- Loader Assemblies & Dependencies -->
+		<Reference Include="Clonesoft.Json">
+			<HintPath>$(ProjectDir)..\lib\Clonesoft.Json.dll</HintPath>
+			<Private>True</Private>
+		</Reference>
+
+		<Reference Include="0Harmony">
+			<HintPath>$(LoaderRootPath)0Harmony.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="BepInEx.Core">
+			<HintPath>$(LoaderRootPath)BepInEx.Core.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="BepInEx.Unity.IL2CPP">
+			<HintPath>$(LoaderRootPath)BepInEx.Unity.IL2CPP.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="Il2CppInterop.Common">
+			<HintPath>$(LoaderRootPath)Il2CppInterop.Common.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="Il2CppInterop.Runtime">
+			<HintPath>$(LoaderRootPath)Il2CppInterop.Runtime.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="UnityEngine.CoreModule">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)UnityEngine.CoreModule.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="UnityEngine">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)UnityEngine.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="Il2Cppmscorlib">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)Il2Cppmscorlib.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Game Assmeblies -->
+		<Reference Include="Modules-ASM">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)Modules-ASM.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="DropServerSDK-ASM">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)DropServerSDK-ASM.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="Addons-ASM">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)Addons-ASM.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="Utils-ASM">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)Utils-ASM.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="GlobalFramework-ASM">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)GlobalFramework-ASM.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="CellSound-ASM">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)CellSound-ASM.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="GUIX-ASM">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)GUIX-ASM.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="Wwise-ASM">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)Wwise-ASM.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+
+		<Reference Include="UnityEngine.IMGUIModule">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)UnityEngine.IMGUIModule.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="UnityEngine.ImageConversionModule">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)UnityEngine.ImageConversionModule.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="Unity.TextMeshPro">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)Unity.TextMeshPro.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="UnityEngine.TextRenderingModule">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)UnityEngine.TextRenderingModule.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="UnityEngine.InputLegacyModule">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)UnityEngine.InputLegacyModule.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="UnityEngine.PhysicsModule">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)UnityEngine.PhysicsModule.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="UnityEngine.AssetBundleModule">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)UnityEngine.AssetBundleModule.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+
+
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="Resources\Data.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Data.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Update="Resources\Data.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Data.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
+
+</Project>
