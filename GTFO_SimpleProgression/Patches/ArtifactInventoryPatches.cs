@@ -1,6 +1,6 @@
 ﻿using BoosterImplants;
 using HarmonyLib;
-using System;
+using SimpleProgression.Core;
 
 namespace SimpleProgression.Patches
 {

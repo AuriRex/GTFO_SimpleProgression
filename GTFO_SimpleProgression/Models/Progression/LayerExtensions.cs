@@ -1,6 +1,6 @@
 ﻿using DropServer;
 
-namespace SimpleProgression.Progression
+namespace SimpleProgression.Models.Progression
 {
     public static class LayerExtensions
     {

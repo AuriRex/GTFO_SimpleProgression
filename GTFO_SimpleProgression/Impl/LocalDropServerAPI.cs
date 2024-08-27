@@ -1,6 +1,7 @@
 ﻿using DropServer;
 using Il2CppInterop.Runtime.Injection;
 using Il2CppSystem.Threading.Tasks;
+using SimpleProgression.Core;
 using System;
 
 namespace SimpleProgression.Impl
@@ -67,11 +68,9 @@ namespace SimpleProgression.Impl
         {
             var bc = request.BoosterCurrency;
             Plugin.L.Warning($"{nameof(LocalDropServerAPI)}: {nameof(EndSessionAsync)} Success: {request.Success}, BoosterCurrency: M:{bc.Basic}, B:{bc.Advanced}, A:{bc.Specialized}");
-            //request.BoosterCurrency
 
-            //request.SessionBlob
-#warning TODO: Boosters
             LocalProgressionManager.Instance.EndCurrentExpeditionSession(request.Success);
+            LocalBoosterManager.Instance.EndSession(request.BoosterCurrency);
 
             return Task.FromResult(new EndSessionResult());
         }
@@ -81,22 +80,20 @@ namespace SimpleProgression.Impl
         public Task<GetBoosterImplantPlayerDataResult> GetBoosterImplantPlayerDataAsync(GetBoosterImplantPlayerDataRequest request)
         {
             Plugin.L.Warning($"{nameof(LocalDropServerAPI)}: {nameof(GetBoosterImplantPlayerDataAsync)}");
-#warning TODO: Boosters
+
             return Task.FromResult(new GetBoosterImplantPlayerDataResult()
             {
-                Data = new(),
+                Data = LocalBoosterManager.Instance.GetBoosterImplantPlayerData(request.MaxBackendTemplateId),
             });
         }
 
         public Task<UpdateBoosterImplantPlayerDataResult> UpdateBoosterImplantPlayerDataAsync(UpdateBoosterImplantPlayerDataRequest request)
         {
             Plugin.L.Warning($"{nameof(LocalDropServerAPI)}: {nameof(UpdateBoosterImplantPlayerDataAsync)}");
-            //request.Transaction
 
-#warning TODO: Boosters
             return Task.FromResult(new UpdateBoosterImplantPlayerDataResult()
             {
-                Data = new(),
+                Data = LocalBoosterManager.Instance.UpdateBoosterImplantPlayerData(request.Transaction),
             });
         }
 
@@ -104,7 +101,8 @@ namespace SimpleProgression.Impl
         {
             Plugin.L.Warning($"{nameof(LocalDropServerAPI)}: {nameof(ConsumeBoostersAsync)}");
 
-#warning TODO: Boosters
+            LocalBoosterManager.Instance.ConsumeBoosters(request.SessionBlob);
+
             return Task.FromResult(new ConsumeBoostersResult()
             {
                 SessionBlob = request.SessionBlob,
@@ -115,24 +113,20 @@ namespace SimpleProgression.Impl
         {
             Plugin.L.Warning($"{nameof(LocalDropServerAPI)}: {nameof(GetInventoryPlayerDataAsync)}");
 
-#warning TODO: Boosters
-#warning TODO: Vanity
             return Task.FromResult(new GetInventoryPlayerDataResult()
             {
-                Boosters = new(),
-                VanityItems = new(),
+                Boosters = LocalBoosterManager.Instance.GetBoosterImplantPlayerData(request.MaxBackendTemplateId),
+                VanityItems = LocalVanityItemManager.Instance.GetVanityItemPlayerData(),
             });
         }
 
         public Task<UpdateVanityItemPlayerDataResult> UpdateVanityItemPlayerDataAsync(UpdateVanityItemPlayerDataRequest request)
         {
             Plugin.L.Warning($"{nameof(LocalDropServerAPI)}: {nameof(UpdateVanityItemPlayerDataAsync)}");
-            //request.Transaction
 
-#warning TODO: Vanity
             return Task.FromResult(new UpdateVanityItemPlayerDataResult()
             {
-                Data = new(),
+                Data = LocalVanityItemManager.Instance.ProcessTransaction(request.Transaction),
             });
         }
         #endregion

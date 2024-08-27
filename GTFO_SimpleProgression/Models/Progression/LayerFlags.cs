@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SimpleProgression.Progression
+namespace SimpleProgression.Models.Progression
 {
     [Flags]
     public enum LayerFlags

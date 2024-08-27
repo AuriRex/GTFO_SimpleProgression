@@ -1,33 +1,29 @@
 ﻿using Clonesoft.Json;
 using SimpleProgression.Interfaces;
-using SimpleProgression.Progression;
+using SimpleProgression.Models.Progression;
 using System;
 using System.IO;
 
-namespace SimpleProgression
+namespace SimpleProgression.Core
 {
     public class LocalProgressionManager
     {
-        public static LocalProgressionManager Instance { get; private set; }
+        public static event Action<ExpeditionSession> OnExpeditionEntered;
+        public static event Action<ExpeditionCompletionData> OnExpeditionCompleted;
 
-        public static string SavePath { get; private set; }
+
+        private static LocalProgressionManager _instance;
+        public static LocalProgressionManager Instance => _instance ??= new LocalProgressionManager(Plugin.L);
 
         private readonly ILogger _logger;
 
-        public LocalProgressionManager(ILogger logger)
+        private LocalProgressionManager(ILogger logger)
         {
-            if (Instance != null)
-                throw new InvalidOperationException("One instance already exists!");
-
-            SavePath = Path.Combine(BepInEx.Paths.BepInExRootPath, "LocalProgression/");
-            Directory.CreateDirectory(SavePath);
             _logger = logger;
-            Instance = this;
         }
 
         public ExpeditionSession CurrentActiveSession { get; private set; }
 
-        public static event Action<ExpeditionCompletionData> OnExpeditionCompleted;
 
         public LocalRundownProgression CurrentLoadedLocalProgressionData { get; private set; } = null;
 
@@ -66,6 +62,7 @@ namespace SimpleProgression
         public void OnLevelEntered()
         {
             CurrentActiveSession?.OnLevelEntered();
+            OnExpeditionEntered?.Invoke(CurrentActiveSession);
         }
 
         public void IncreaseLayerProgression(string strLayer, string strState)
@@ -143,7 +140,7 @@ namespace SimpleProgression
                 rundownKey = rundownKey.Replace(c, '_');
             }
 
-            return Path.Combine(SavePath, $"{rundownKey}.json");
+            return Path.Combine(Paths.SaveFolderPath, $"{rundownKey}.json");
         }
 
         public LocalRundownProgression LoadFromProgressionFile(string rundownKey)

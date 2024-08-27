@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SimpleProgression.Progression
+namespace SimpleProgression.Models.Progression
 {
     public class ExpeditionSession
     {

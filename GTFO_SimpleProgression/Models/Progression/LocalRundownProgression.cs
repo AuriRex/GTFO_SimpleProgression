@@ -2,13 +2,13 @@
 using DropServer;
 using Il2CppInterop.Runtime.Injection;
 using SimpleProgression.Interfaces;
-using SimpleProgression.Progression;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using static Il2CppSystem.Globalization.CultureInfo;
 
-namespace SimpleProgression
+namespace SimpleProgression.Models.Progression
 {
     public class LocalRundownProgression
     {
@@ -93,12 +93,29 @@ namespace SimpleProgression
 			if (!uint.TryParse(session.RundownId.Replace("Local_", string.Empty), out var rundownId))
 			{
 				_logger?.Error($"[{nameof(LocalRundownProgression)}.{nameof(AddSessionResults)}] Could not parse rundown id from \"{session.RundownId}\"!");
-				rundownId = 0;
+                rundownId = 0;
+            }
+
+            char tierCharacter = session.ExpeditionId[0];
+            if(int.TryParse(session.ExpeditionId.Skip(1).ToString(), out var expeditionIndex))
+			{
+                expeditionIndex--;
+            }
+			else
+			{
+				expeditionIndex = -1;
 			}
 
-			completionData = new ExpeditionCompletionData
+            if (!Enum.TryParse<eRundownTier>($"Tier{tierCharacter}", out var tier))
+			{
+				tier = eRundownTier.TierA;
+			}
+
+            completionData = new ExpeditionCompletionData
 			{
 				RundownId = rundownId,
+				ExpeditionIndex = expeditionIndex,
+				ExpeditionTier = tier,
 				PreArtifactHeat = previousHeat,
 				NewArtifactHeat = expeditionEntry.ArtifactHeat,
 				WasFirstTimeCompletion = isFirstTimeCompletion,

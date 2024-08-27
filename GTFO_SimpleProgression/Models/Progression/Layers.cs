@@ -1,4 +1,4 @@
-﻿namespace SimpleProgression.Progression
+﻿namespace SimpleProgression.Models.Progression
 {
     public enum Layers
     {

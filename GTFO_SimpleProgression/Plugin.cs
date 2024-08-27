@@ -3,7 +3,11 @@ using BepInEx.Unity.IL2CPP;
 using DropServer;
 using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
+using SimpleProgression.AVUnlock;
+using SimpleProgression.Core;
 using SimpleProgression.Impl;
+using System;
+using System.Linq;
 using System.Reflection;
 
 [assembly: AssemblyVersion(SimpleProgression.Plugin.VERSION)]
@@ -34,10 +38,21 @@ namespace SimpleProgression
                 LogSuccess = true,
             });
 
-            new LocalProgressionManager(L);
-
             _harmony = new Harmony(GUID);
             _harmony.PatchAll(Assembly.GetExecutingAssembly());
+        }
+
+        internal static void OnDataBlocksReady()
+        {
+            try
+            {
+                LocalVanityItemDropper.Instance.Init();
+                LocalBoosterDropper.Instance.Init();
+            }
+            catch(Exception ex)
+            {
+                L.Exception(ex);
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using SimpleProgression.Core;
 
 namespace SimpleProgression.Patches
 {
