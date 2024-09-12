@@ -20,7 +20,10 @@ namespace SimpleProgression.Models.Progression
         public string ExpeditionId { get; private set; } = string.Empty;
         public string SessionId { get; private set; } = string.Empty;
 
-        public int ArtifactsCollected { get; internal set; } = 0;
+        public int ArtifactsCollected => MutedArtifactsCollected + BoldArtifactsCollected + AggressiveArtifactsCollected;
+        public int MutedArtifactsCollected { get; internal set; } = 0;
+        public int BoldArtifactsCollected { get; internal set; } = 0;
+        public int AggressiveArtifactsCollected { get; internal set; } = 0;
 
         public bool PrisonerEfficiencyCompleted
         {

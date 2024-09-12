@@ -2,6 +2,7 @@
 using DropServer.VanityItems;
 using GameData;
 using SimpleProgression.Interfaces;
+using SimpleProgression.Interop;
 using SimpleProgression.Models.Progression;
 using SimpleProgression.Models.Vanity;
 using System;
@@ -15,8 +16,6 @@ namespace SimpleProgression.Core
         public static LocalVanityItemManager Instance => _instance ??= new LocalVanityItemManager(Plugin.L);
 
         private readonly ILogger _logger;
-
-        public bool Disabled { get; internal set; } = false;
 
         private LocalVanityItemManager(ILogger logger)
         {
@@ -39,6 +38,8 @@ namespace SimpleProgression.Core
                     {
                         Dropper.DropFirstTimePlayingItems(_localVanityItemStorage);
                     }
+
+                    CheckCustomVanityUnlockConditionsMet(null);
                 }
 
                 return _localVanityItemStorage;
@@ -52,6 +53,8 @@ namespace SimpleProgression.Core
 
         public void OnExpeditionCompleted(ExpeditionCompletionData data)
         {
+            CheckCustomVanityUnlockConditionsMet(data);
+
             if (!data.Success)
                 return;
 
@@ -59,13 +62,29 @@ namespace SimpleProgression.Core
             CheckTotalUniqueCompletionsRequirementMet(data);
         }
 
+        internal void CheckCustomVanityUnlockConditionsMet(ExpeditionCompletionData? data)
+        {
+            foreach(var method in LocalVanityUnlocker.unlockMethods)
+            {
+                try
+                {
+                    var toDrop = method?.Invoke(data);
+
+                    foreach(var template in toDrop)
+                    {
+                        Dropper.TryDropCustomItem(LocalVanityItemPlayerData, template);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    _logger.Error($"Custom Vanity Unlock Condition threw an exception (continuing ...):");
+                    _logger.Exception(ex);
+                }
+            }
+        }
+
         public void CheckTotalUniqueCompletionsRequirementMet(ExpeditionCompletionData data)
         {
-            if (Instance.Disabled)
-            {
-                return;
-            }
-
             try
             {
                 if (data.RundownId == 0)
@@ -78,7 +97,7 @@ namespace SimpleProgression.Core
 
                 if (!vanityItemLayerDropDataBlockPersistentID.HasValue)
                 {
-                    _logger.Error($"[{nameof(CheckTotalUniqueCompletionsRequirementMet)}] {nameof(vanityItemLayerDropDataBlockPersistentID)} has no value!");
+                    _logger.Warning($"[{nameof(CheckTotalUniqueCompletionsRequirementMet)}] {nameof(vanityItemLayerDropDataBlockPersistentID)} has no value!");
                     return;
                 }
 
@@ -86,7 +105,7 @@ namespace SimpleProgression.Core
 
                 if (vilddb == null)
                 {
-                    _logger.Error($"[{nameof(CheckTotalUniqueCompletionsRequirementMet)}] {nameof(VanityItemsLayerDropsDataBlock)} with persistent ID {vanityItemLayerDropDataBlockPersistentID} could not be found!");
+                    _logger.Warning($"[{nameof(CheckTotalUniqueCompletionsRequirementMet)}] {nameof(VanityItemsLayerDropsDataBlock)} with persistent ID {vanityItemLayerDropDataBlockPersistentID} could not be found!");
                     return;
                 }
 
@@ -129,12 +148,9 @@ namespace SimpleProgression.Core
 
         public void CheckFirstTimeExpeditionCompletion(ExpeditionCompletionData data)
         {
-            if (Instance.Disabled)
-            {
+            if (!data.WasFirstTimeCompletion)
                 return;
-            }
 
-            if (!data.WasFirstTimeCompletion) return;
             try
             {
                 if (data.RundownId == 0)
@@ -156,11 +172,6 @@ namespace SimpleProgression.Core
 
         public void DropFirstTimeCompletionRewards(GameData.ExpeditionInTierData expeditionData)
         {
-            if (Instance.Disabled)
-            {
-                return;
-            }
-
             if (expeditionData.VanityItemsDropData.Groups.Count > 0)
             {
                 _logger.Notice("Dropping first time completion rewards ...");
@@ -169,6 +180,27 @@ namespace SimpleProgression.Core
                     Dropper.DropRandomFromGroup(group, LocalVanityItemPlayerData);
                 }
             }
+        }
+
+        public bool HasUnlocked(VanityItemsTemplateDataBlock block)
+        {
+            if (block == null)
+                return false;
+
+            foreach (var item in LocalVanityItemPlayerData.Items)
+            {
+                if (item.IsCustom)
+                {
+                    if (item.CustomKey == block.name)
+                        return true;
+                    continue;
+                }
+
+                if (item.ItemID == block.persistentID)
+                    return true;
+            }
+
+            return false;
         }
 
         public VanityItemPlayerData ProcessTransaction(VanityItemServiceTransaction trans)
@@ -206,11 +238,6 @@ namespace SimpleProgression.Core
 
         public static void SaveToLocalFile(LocalVanityItemStorage data)
         {
-            if (Instance.Disabled)
-            {
-                return;
-            }
-
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
             Instance._logger.Msg(ConsoleColor.DarkRed, $"Saving VanityItems to disk at: {Paths.VanityItemsFilePath}");
@@ -220,11 +247,6 @@ namespace SimpleProgression.Core
 
         public static LocalVanityItemStorage LoadFromLocalFile()
         {
-            if (Instance.Disabled)
-            {
-                return new LocalVanityItemStorage();
-            }
-
             Instance._logger.Msg(ConsoleColor.Green, $"Loading VanityItems from disk at: {Paths.VanityItemsFilePath}");
             if (!File.Exists(Paths.VanityItemsFilePath))
                 return new LocalVanityItemStorage();
@@ -235,11 +257,6 @@ namespace SimpleProgression.Core
 
         public static void SaveAcquiredLayerDrops(LocalVanityAcquiredLayerDrops data)
         {
-            if (Instance.Disabled)
-            {
-                return;
-            }
-
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
             Instance._logger.Fail($"Saving LocalVanityAcquiredLayerDrops to disk at: {Paths.VanityItemsLayerDropsPath}");
@@ -249,11 +266,6 @@ namespace SimpleProgression.Core
 
         public static LocalVanityAcquiredLayerDrops LoadAcquiredLayerDrops()
         {
-            if (Instance.Disabled)
-            {
-                return new LocalVanityAcquiredLayerDrops();
-            }
-
             Instance._logger.Success($"Loading LocalVanityAcquiredLayerDrops from disk at: {Paths.VanityItemsLayerDropsPath}");
             if (!File.Exists(Paths.VanityItemsLayerDropsPath))
                 return new LocalVanityAcquiredLayerDrops();

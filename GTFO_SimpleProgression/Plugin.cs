@@ -3,11 +3,9 @@ using BepInEx.Unity.IL2CPP;
 using DropServer;
 using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
-using SimpleProgression.AVUnlock;
 using SimpleProgression.Core;
 using SimpleProgression.Impl;
 using System;
-using System.Linq;
 using System.Reflection;
 
 [assembly: AssemblyVersion(SimpleProgression.Plugin.VERSION)]
@@ -21,7 +19,7 @@ namespace SimpleProgression
     {
         public const string GUID = "dev.aurirex.gtfo.simpleprogression";
         public const string NAME = "Simple Progression";
-        public const string VERSION = "0.0.1";
+        public const string VERSION = "1.0.0";
 
         internal static Logger L;
 

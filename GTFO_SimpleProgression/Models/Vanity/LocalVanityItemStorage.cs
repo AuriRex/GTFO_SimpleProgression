@@ -1,5 +1,6 @@
 ﻿using DropServer.VanityItems;
 using Il2CppInterop.Runtime.Injection;
+using SimpleProgression.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,12 +21,32 @@ namespace SimpleProgression.Models.Vanity
             Items.Where(x => x.ItemID == id).ToList().ForEach(x => x.Flags &= ~flag);
         }
 
+        public IEnumerable<LocalVanityItem> GetValidItemsAndFixCustomIDs()
+        {
+            foreach (var item in Items)
+            {
+                if (item.IsCustom)
+                {
+                    // IDs might be shifting on custom items, so we refresh the ID
+                    if (!LocalVanityItemDropper.Instance.TryGetBlockFromCustomKey(item.CustomKey, out var block))
+                    {
+                        Plugin.L.Warning($"Could not find custom item \"{item.CustomKey}\"! It won't be in your inventory in game!");
+                        continue;
+                    }
+                    item.ItemID = block.persistentID;
+                }
+
+                yield return item;
+            }
+        }
 
 
         public class LocalVanityItem
         {
             public uint ItemID { get; set; } = 0;
             public VanityItemFlags Flags { get; set; } = VanityItemFlags.None;
+            public bool IsCustom { get; set; } = false;
+            public string CustomKey { get; set; } = string.Empty;
         }
 
         [Flags]
@@ -41,13 +62,15 @@ namespace SimpleProgression.Models.Vanity
 
         public static VanityItemPlayerData ToBaseGame(LocalVanityItemStorage customData)
         {
+            var validItems = customData.GetValidItemsAndFixCustomIDs().ToList();
+
             var vipd = new VanityItemPlayerData(ClassInjector.DerivedConstructorPointer<VanityItemPlayerData>());
 
-            vipd.Items = new (customData.Items.Count);
+            vipd.Items = new(validItems.Count);
 
-            for (int i = 0; i < customData.Items.Count; i++)
+            for (int i = 0; i < validItems.Count; i++)
             {
-                var current = customData.Items[i];
+                var current = validItems[i];
 
                 var item = new DropServer.VanityItems.VanityItem()
                 {

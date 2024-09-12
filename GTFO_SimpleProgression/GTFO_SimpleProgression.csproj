@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
@@ -75,6 +75,10 @@
 		</Reference>
 		<Reference Include="DropServerSDK-ASM">
 			<HintPath>$(LatestGeneratedGameAssembliesPath)DropServerSDK-ASM.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="Shards-ASM">
+			<HintPath>$(LatestGeneratedGameAssembliesPath)Shards-ASM.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
 		<Reference Include="Addons-ASM">

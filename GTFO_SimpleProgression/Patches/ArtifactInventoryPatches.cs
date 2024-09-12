@@ -10,7 +10,7 @@ namespace SimpleProgression.Patches
     {
         public static void Postfix(ArtifactInventory __instance)
         {
-            LocalProgressionManager.Instance.ArtifactCountUpdated(__instance.CommonCount + __instance.RareCount + __instance.UncommonCount);
+            LocalProgressionManager.Instance.ArtifactCountUpdated(__instance.CommonCount, __instance.UncommonCount, __instance.RareCount);
         }
     }
 }

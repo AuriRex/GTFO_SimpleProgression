@@ -3,7 +3,6 @@ using SimpleProgression.Interfaces;
 using SimpleProgression.Models.Vanity;
 using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace SimpleProgression.Core
 {
@@ -45,8 +44,7 @@ namespace SimpleProgression.Core
 
             if (ItemGroups.Length == 0 && ItemDropData.Length == 0)
             {
-                LocalVanityItemManager.Instance.Disabled = true;
-                _logger.Msg(ConsoleColor.Magenta, $"{nameof(LocalVanityItemDropper)}.{nameof(Init)}() complete, no groups or layer drops set -> disabling vanity");
+                _logger.Msg(ConsoleColor.Magenta, $"{nameof(LocalVanityItemDropper)}.{nameof(Init)}() complete, no groups or layer drops set! (Found {ItemTemplates.Length} Templates)");
             }
             else
             {
@@ -56,7 +54,6 @@ namespace SimpleProgression.Core
                     _logger.Info($" > {dd.name}: #Drops: {dd.LayerDrops?.Count ?? 0}, Enabled: {dd.internalEnabled}");
                 }
             }
-            
 
             Inited = true;
         }
@@ -117,6 +114,29 @@ namespace SimpleProgression.Core
             return false;
         }
 
+        internal bool TryDropCustomItem(LocalVanityItemStorage playerData, VanityItemsTemplateDataBlock template, bool silentDrop = false, bool ignoreDuplicateDrops = false)
+        {
+            InitCheck();
+
+            if (ignoreDuplicateDrops || playerData.Items.FirstOrDefault(item => item.IsCustom && item.CustomKey == template.name) == null)
+            {
+                var item = new LocalVanityItemStorage.LocalVanityItem
+                {
+                    IsCustom = true,
+                    CustomKey = template.name,
+                    ItemID = template.persistentID,
+                    Flags = silentDrop ? LocalVanityItemStorage.VanityItemFlags.ALL : LocalVanityItemStorage.VanityItemFlags.None
+                };
+
+                playerData.Items.Add(item);
+                _logger.Info($"Dropped Custom Vanity Item \"{template?.publicName ?? $"ID:{template?.persistentID ?? 0}"}\"!");
+                return true;
+            }
+
+            _logger.Info($"Aborted drop of Custom Vanity Item \"{template?.publicName ?? $"ID:{template?.persistentID ?? 0}"}\" because it's already owned!");
+            return false;
+        }
+
         public bool TryGetTemplate(uint persistentID, out VanityItemsTemplateDataBlock template)
         {
             InitCheck();
@@ -146,6 +166,12 @@ namespace SimpleProgression.Core
             DropRandomFromGroup(5, playerData, true);
             DropRandomFromGroup(6, playerData, true);
             DropRandomFromGroup(7, playerData, true);
+        }
+
+        internal bool TryGetBlockFromCustomKey(string customKey, out VanityItemsTemplateDataBlock block)
+        {
+            block = ItemTemplates.FirstOrDefault(template => template.name == customKey);
+            return block != null;
         }
     }
 }

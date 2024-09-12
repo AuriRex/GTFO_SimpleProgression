@@ -87,11 +87,15 @@ namespace SimpleProgression.Core
             CurrentActiveSession?.OnCheckpointReset();
         }
 
-        public void ArtifactCountUpdated(int count)
+        public void ArtifactCountUpdated(int mutedCount, int boldCount, int aggressiveCount)
         {
-            if (CurrentActiveSession == null) return;
-            CurrentActiveSession.ArtifactsCollected = count;
-            _logger.Info($"current Artifact count: {count}");
+            if (CurrentActiveSession == null)
+                return;
+
+            CurrentActiveSession.MutedArtifactsCollected = mutedCount;
+            CurrentActiveSession.BoldArtifactsCollected = boldCount;
+            CurrentActiveSession.AggressiveArtifactsCollected = aggressiveCount;
+            _logger.Info($"current Artifact count: Muted:{mutedCount}, Bold:{boldCount}, Aggressive:{aggressiveCount}");
         }
 
         public void EndCurrentExpeditionSession(bool success)
