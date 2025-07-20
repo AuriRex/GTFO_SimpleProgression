@@ -1,14 +1,13 @@
 ﻿using System;
 
-namespace SimpleProgression.Models.Progression
+namespace SimpleProgression.Models.Progression;
+
+[Flags]
+public enum LayerFlags
 {
-    [Flags]
-    public enum LayerFlags
-    {
-        None = 0,
-        Main = 1 << 0,
-        Secondary = 1 << 1,
-        Third = 1 << 2,
-        All = Main | Secondary | Third,
-    }
+    None = 0,
+    Main = 1 << 0,
+    Secondary = 1 << 1,
+    Third = 1 << 2,
+    All = Main | Secondary | Third,
 }

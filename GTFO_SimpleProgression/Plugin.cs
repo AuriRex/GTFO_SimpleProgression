@@ -1,56 +1,55 @@
-﻿using BepInEx;
+﻿using System;
+using System.Reflection;
+using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using DropServer;
 using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
+using SimpleProgression;
 using SimpleProgression.Core;
 using SimpleProgression.Impl;
-using System;
-using System.Reflection;
 
-[assembly: AssemblyVersion(SimpleProgression.Plugin.VERSION)]
-[assembly: AssemblyFileVersion(SimpleProgression.Plugin.VERSION)]
-[assembly: AssemblyInformationalVersion(SimpleProgression.Plugin.VERSION)]
+[assembly: AssemblyVersion(Plugin.VERSION)]
+[assembly: AssemblyFileVersion(Plugin.VERSION)]
+[assembly: AssemblyInformationalVersion(Plugin.VERSION)]
 
-namespace SimpleProgression
+namespace SimpleProgression;
+
+[BepInPlugin(GUID, MOD_NAME, VERSION)]
+public class Plugin : BasePlugin
 {
-    [BepInPlugin(GUID, NAME, VERSION)]
-    public class Plugin : BasePlugin
+    public const string GUID = "dev.AuriRex.gtfo.SimpleProgression";
+    public const string MOD_NAME = ManifestInfo.TSName;
+    public const string VERSION = ManifestInfo.TSVersion;
+
+    internal static Logger L;
+
+    private static readonly Harmony _harmony = new(GUID);
+
+    public override void Load()
     {
-        public const string GUID = "dev.aurirex.gtfo.simpleprogression";
-        public const string NAME = "Simple Progression";
-        public const string VERSION = "1.0.0";
+        L = new Logger(Log);
+        Log.LogMessage($"Initializing {MOD_NAME}");
 
-        internal static Logger L;
-
-        private static Harmony _harmony;
-
-        public override void Load()
+        ClassInjector.RegisterTypeInIl2Cpp<LocalDropServerAPI>(new RegisterTypeOptions
         {
-            L = new Logger(Log);
-            Log.LogMessage($"Initializing {NAME}");
+            Interfaces = new[] { typeof(IDropServerClientAPI) },
+            LogSuccess = true,
+        });
+        
+        _harmony.PatchAll(Assembly.GetExecutingAssembly());
+    }
 
-            ClassInjector.RegisterTypeInIl2Cpp<LocalDropServerAPI>(new RegisterTypeOptions
-            {
-                Interfaces = new[] { typeof(IDropServerClientAPI) },
-                LogSuccess = true,
-            });
-
-            _harmony = new Harmony(GUID);
-            _harmony.PatchAll(Assembly.GetExecutingAssembly());
+    internal static void OnDataBlocksReady()
+    {
+        try
+        {
+            LocalVanityItemDropper.Instance.Init();
+            LocalBoosterDropper.Instance.Init();
         }
-
-        internal static void OnDataBlocksReady()
+        catch(Exception ex)
         {
-            try
-            {
-                LocalVanityItemDropper.Instance.Init();
-                LocalBoosterDropper.Instance.Init();
-            }
-            catch(Exception ex)
-            {
-                L.Exception(ex);
-            }
+            L.Exception(ex);
         }
     }
 }

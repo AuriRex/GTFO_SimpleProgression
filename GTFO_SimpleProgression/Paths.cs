@@ -1,80 +1,79 @@
 ﻿using System.IO;
 
-namespace SimpleProgression
+namespace SimpleProgression;
+
+internal class Paths
 {
-    internal class Paths
+    private static string _saveFolderPath;
+    public static string SaveFolderPath
     {
-        private static string _saveFolderPath;
-        public static string SaveFolderPath
+        get
         {
-            get
+            if (string.IsNullOrWhiteSpace(_saveFolderPath))
             {
-                if (string.IsNullOrWhiteSpace(_saveFolderPath))
-                {
-                    _saveFolderPath = Path.Combine(BepInEx.Paths.BepInExRootPath, "LocalProgression/");
-                    Directory.CreateDirectory(_saveFolderPath);
-                }
-                return _saveFolderPath;
+                _saveFolderPath = Path.Combine(BepInEx.Paths.BepInExRootPath, "LocalProgression/");
+                Directory.CreateDirectory(_saveFolderPath);
             }
+            return _saveFolderPath;
         }
+    }
 
 
-        private static string _vanityItemsLayerDropsPath;
-        public static string VanityItemsLayerDropsPath
+    private static string _vanityItemsLayerDropsPath;
+    public static string VanityItemsLayerDropsPath
+    {
+        get
         {
-            get
+            if (string.IsNullOrWhiteSpace(_vanityItemsLayerDropsPath))
             {
-                if (string.IsNullOrWhiteSpace(_vanityItemsLayerDropsPath))
-                {
-                    _vanityItemsLayerDropsPath = Path.Combine(VanityFolderPath, "VanityLayerDrops.json");
-                }
-                return _vanityItemsLayerDropsPath;
+                _vanityItemsLayerDropsPath = Path.Combine(VanityFolderPath, "VanityLayerDrops.json");
             }
+            return _vanityItemsLayerDropsPath;
         }
+    }
 
 
-        private static string _vanityItemsFilePath;
-        public static string VanityItemsFilePath
+    private static string _vanityItemsFilePath;
+    public static string VanityItemsFilePath
+    {
+        get
         {
-            get
+            if (string.IsNullOrWhiteSpace(_vanityItemsFilePath))
             {
-                if (string.IsNullOrWhiteSpace(_vanityItemsFilePath))
-                {
-                    _vanityItemsFilePath = Path.Combine(VanityFolderPath, "VanityData.json");
-                }
-                return _vanityItemsFilePath;
+                _vanityItemsFilePath = Path.Combine(VanityFolderPath, "VanityData.json");
             }
+            return _vanityItemsFilePath;
         }
+    }
 
 
-        private static string _vanityFolderPath;
-        public static string VanityFolderPath
+    private static string _vanityFolderPath;
+    public static string VanityFolderPath
+    {
+        get
         {
-            get
+            if (string.IsNullOrWhiteSpace(_vanityFolderPath))
             {
-                if (string.IsNullOrWhiteSpace(_vanityFolderPath))
-                {
-                    _vanityFolderPath = Path.Combine(SaveFolderPath, "Vanity/");
-                    Directory.CreateDirectory(_vanityFolderPath);
-                }
-                return _vanityFolderPath;
+                _vanityFolderPath = Path.Combine(SaveFolderPath, "Vanity/");
+                Directory.CreateDirectory(_vanityFolderPath);
             }
+            return _vanityFolderPath;
         }
+    }
 
 
-        private static string _boostersPath;
-        public static string BoostersFilePath
+    private static string _boostersPath;
+    public static string BoostersFilePath
+    {
+        get
         {
-            get
+            if (string.IsNullOrWhiteSpace(_boostersPath))
             {
-                if (string.IsNullOrWhiteSpace(_boostersPath))
-                {
-                    var path = Path.Combine(SaveFolderPath, "Boosters/");
-                    Directory.CreateDirectory(path);
-                    _boostersPath = Path.Combine(path, "BoosterData.json");
-                }
-                return _boostersPath;
+                var path = Path.Combine(SaveFolderPath, "Boosters/");
+                Directory.CreateDirectory(path);
+                _boostersPath = Path.Combine(path, "BoosterData.json");
             }
+            return _boostersPath;
         }
     }
 }

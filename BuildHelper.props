@@ -1,0 +1,145 @@
+﻿<Project InitialTargets="ValidateGamePath">
+	<Import Project="$(MSBuildThisFileDirectory)\GameFolder.props" Condition="Exists('$(MSBuildThisFileDirectory)\GameFolder.props')" />
+  
+	<Target Name="ValidateGamePath">
+		<Error Text="The GameFolder property must be set to the GTFO game folder." Condition="'$(GameFolder)' == '' or !Exists('$(GameFolder)')" />
+		<Error Text="Dependencies.props file does not exist." Condition="!Exists('$(MSBuildThisFileDirectory)\Dependencies.props')" />
+	</Target>
+
+	<PropertyGroup>
+		<BIELibsFolder>$(GameFolder)\BepInEx\core</BIELibsFolder>
+		<CorLibsFolder>$(GameFolder)\dotnet</CorLibsFolder>
+		<InteropLibsFolder>$(GameFolder)\BepInEx\interop</InteropLibsFolder>
+		<PluginsFolder>$(GameFolder)\BepInEx\plugins</PluginsFolder>
+		<CopyBuildToPluginFolder>true</CopyBuildToPluginFolder>
+		<PluginOutputPath>$(MSBuildThisFileDirectory)\output\$(AssemblyName)\plugins\</PluginOutputPath>
+		
+		<!--<MiscItemsInProjectDir>true</MiscItemsInProjectDir>-->
+		<MiscFilesDir>$(MSBuildThisFileDirectory)</MiscFilesDir>
+
+		<ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(MiscItemsInProjectDir)' == 'true'">
+		<MiscFilesDir>$(MSBuildProjectDirectory)</MiscFilesDir>
+	</PropertyGroup>
+	
+	<PropertyGroup>
+		<PluginOutputPath>$(MSBuildThisFileDirectory)\output\$(TSAuthor.Replace(".", "_"))-$(TSName.Replace(".", "_"))\plugins\</PluginOutputPath>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TSVersion)' == '' And '$(GitSemVerMajor)' != ''">
+		<TSVersion>$(GitSemVerMajor).$(GitSemVerMinor).$(GitSemVerPatch)</TSVersion>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(TSVersion)' == ''">
+		<TSVersion>0.0.1</TSVersion>
+	</PropertyGroup>
+	
+	<Import Project="$(MSBuildThisFileDirectory)\Dependencies.props" />
+
+	<ItemGroup>
+		<!-- Mark the property as compiler aware, so it's added to the editor config-->
+		<CompilerVisibleProperty Include="TSName" />
+		<CompilerVisibleProperty Include="TSAuthor" />
+		<CompilerVisibleProperty Include="TSVersion" />
+		<CompilerVisibleProperty Include="TSWebsite" />
+		<CompilerVisibleProperty Include="TSDescription" />
+	</ItemGroup>
+
+	<!-- BuildHelper - SourceGenerator and Task -->
+	<ItemGroup>
+		<Analyzer Include="$(MSBuildThisFileDirectory)\BuildHelper\ManifestInfoSourceGenerator.dll" />
+	</ItemGroup>
+
+	<UsingTask TaskName="ManifestGenerator.ManifestGeneratorTask" AssemblyFile="$(MSBuildThisFileDirectory)\BuildHelper\ManifestGenerator.dll"/>
+	
+	<!-- MSBuild Actions -->
+	<Target Name="FixRiderGitignoreBSBeforeBuild" BeforeTargets="Build" Condition="Exists('$(MSBuildThisFileDirectory)\gitignore-template')">
+		<!-- this is stupid -->
+		<Move SourceFiles="$(MSBuildThisFileDirectory)\gitignore-template" DestinationFiles="$(MSBuildThisFileDirectory)\.gitignore" ContinueOnError="true" OverwriteReadOnlyFiles="true" />
+
+		<!-- This is also stupid -->
+		<Exec Command="git rm --cached --sparse &quot;$(MSBuildThisFileDirectory)GameFolder.props&quot;" ContinueOnError="true" />
+	</Target>
+	
+	<Target Name="CopyAssemblyAfterBuild" AfterTargets="Build" Condition="'$(PluginOutputPath)' != ''">
+		<MakeDir Directories="$(PluginOutputPath)" Condition="!Exists('$(PluginOutputPath)')"  />
+		<Message Text="Copying Assembly to Ouput Folder..." />
+		<Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll"
+			  DestinationFiles="$(PluginOutputPath)\$(AssemblyName).dll"/>
+
+		<Message Text="Assembly has been copied to Ouput Folder!" Importance="High"/>
+	</Target>
+	
+	<Target Name="CopyLocalizationFilesAfterBuild" AfterTargets="CopyAssemblyAfterBuild"  Condition="'$(LocalizationFileDir)' != ''">
+		<Message Text="Copying Localization files to Output Folder ..." />
+		<ItemGroup>
+			<LocalizationFilesToCopy Include="$(LocalizationFileDir)\**\*.*" />
+		</ItemGroup>
+		<Copy
+				SourceFiles="@(LocalizationFilesToCopy)"
+				DestinationFolder="$(PluginOutputPath)\Localization\%(RecursiveDir)"
+				SkipUnchangedFiles="true"
+				OverwriteReadOnlyFiles="true"
+				Retries="3"
+				RetryDelayMilliseconds="300"/>
+		<Message Text="Localization files copied!" Importance="High" />
+	</Target>
+
+	<Target Name="CopyOutputFilesToPluginFolder" AfterTargets="CopyAssemblyAfterBuild;CopyLocalizationFilesAfterBuild" Condition="$(CopyBuildToPluginFolder) == 'true'">
+		<Message Text="Copying Output to Plugins Folder..." />
+		<MakeDir Directories="$(PluginsFolder)\$(AssemblyName)" Condition="!Exists('$(PluginsFolder)\$(AssemblyName)')"  />
+		<ItemGroup>
+			<OutputFilesToCopy Include="$(PluginOutputPath)\**\*.*" />
+		</ItemGroup>
+		<Copy
+				SourceFiles="@(OutputFilesToCopy)"
+				DestinationFolder="$(PluginsFolder)\$(AssemblyName)\%(RecursiveDir)"
+				SkipUnchangedFiles="true"
+				OverwriteReadOnlyFiles="true"
+				Retries="3"
+				RetryDelayMilliseconds="300"/>
+
+		<Message Text="Output has been copied to Plugins Folder!" Importance="High"/>
+	</Target>
+
+	<Target Name="CopyMiscFilesToOutputFolder" AfterTargets="CopyAssemblyAfterBuild">
+		<Message Text="Copying Misc files to Output Folder..." />
+		<ItemGroup Condition="Exists('$(MiscFilesDir)\icon.png')">
+			<MiscFilesToCopy Include="$(MiscFilesDir)\icon.png" />
+		</ItemGroup>
+		<ItemGroup Condition="Exists('$(MiscFilesDir)\README.md')">
+			<MiscFilesToCopy Include="$(MiscFilesDir)\README.md" />
+		</ItemGroup>
+		<ItemGroup Condition="Exists('$(MiscFilesDir)\CHANGELOG.md')">
+			<MiscFilesToCopy Include="$(MiscFilesDir)\CHANGELOG.md" />
+		</ItemGroup>
+		<Copy
+				SourceFiles="@(MiscFilesToCopy)"
+				DestinationFolder="$(PluginOutputPath)\..\"
+				SkipUnchangedFiles="true"
+				OverwriteReadOnlyFiles="true"
+				Retries="3"
+				RetryDelayMilliseconds="300" />
+
+		<Message Text="Misc files have been copied to Output Folder!" Importance="High"/>
+	</Target>
+
+	<Target Name="GenerateManifestFile" AfterTargets="CopyAssemblyAfterBuild" Condition="'$(TSName)' != ''">
+		<ManifestGeneratorTask Name="$(TSName)" Author="$(TSAuthor)" Version="$(TSVersion)" WebsiteURL="$(TSWebsite)" Description="$(TSDescription)" Dependencies="@(TSDependencyStrings)" OutputPath="$(PluginOutputPath)\..\" />
+	</Target>
+	
+	<Target Name="ZipOutputPath" AfterTargets="CopyAssemblyAfterBuild;CopyLocalizationFilesAfterBuild;CopyMiscFilesToOutputFolder;GenerateManifestFile" Condition="'$(Configuration)' == 'Release'">
+		<PropertyGroup>
+			<OutputZipNamePrefix>$(AssemblyName)</OutputZipNamePrefix>
+		</PropertyGroup>
+		<PropertyGroup>
+			<OutputZipNamePrefix>$(TSAuthor.Replace(".", "_").Replace(" ", "_"))-$(TSName.Replace(".", "_").Replace(" ", "_"))</OutputZipNamePrefix>
+		</PropertyGroup>
+		<ZipDirectory
+				SourceDirectory="$(PluginOutputPath)\..\"
+				DestinationFile="$(PluginOutputPath)\..\..\$(OutputZipNamePrefix)_v$(TSVersion).zip"
+				Overwrite="true" />
+	</Target>
+</Project>

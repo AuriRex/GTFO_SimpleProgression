@@ -1,0 +1,23 @@
+<Project>
+    <!-- BepInEx libs -->
+    <ItemGroup>
+        <Reference Include="$(BIELibsFolder)\BepInEx.*.dll" Private="false" />
+        <Reference Include="$(BIELibsFolder)\0Harmony.dll" Private="false" />
+        <Reference Include="$(BIELibsFolder)\MonoMod.RuntimeDetour.dll" Private="false" />
+        <Reference Include="$(BIELibsFolder)\Il2CppInterop.*.dll" Private="false" />
+        <Reference Include="$(BIELibsFolder)\SemanticVersioning.dll" Private="false" />
+    </ItemGroup>
+
+    <!-- Interop -->
+    <ItemGroup>
+        <Reference Include="$(InteropLibsFolder)/*.dll" Private="false" />
+        <Reference Remove="$(InteropLibsFolder)/netstandard.dll" />
+        <Reference Remove="$(InteropLibsFolder)/Newtonsoft.Json.dll" />
+    </ItemGroup>
+
+    <!-- Other Dependencies -->
+    <ItemGroup>
+        <Reference Include="$(PluginsFolder)/GTFO-API.dll" Private="false" />
+        <Reference Include="$(PluginsFolder)/**/CloneSoft.JSON.dll" Private="false" />
+    </ItemGroup>
+</Project>

@@ -2,33 +2,32 @@
 using HarmonyLib;
 using SimpleProgression.Impl;
 
-namespace SimpleProgression.Patches
+namespace SimpleProgression.Patches;
+
+[HarmonyWrapSafe]
+[HarmonyPatch(typeof(DropServerManager), nameof(DropServerManager.OnTitleDataUpdated))]
+internal class DropServerManager_OnTitleDataUpdated_Patch
 {
-    [HarmonyWrapSafe]
-    [HarmonyPatch(typeof(DropServerManager), nameof(DropServerManager.OnTitleDataUpdated))]
-    internal class DropServerManager_OnTitleDataUpdated_Patch
+    public static bool Prefix(DropServerManager __instance)
     {
-        public static bool Prefix(DropServerManager __instance)
-        {
-            __instance.ClientApi = new LocalDropServerAPI().TryCast<IDropServerClientAPI>();
+        __instance.ClientApi = new LocalDropServerAPI().TryCast<IDropServerClientAPI>();
 
-            return false;
-        }
+        return false;
     }
+}
 
-    [HarmonyWrapSafe]
-    [HarmonyPatch(typeof(DropServerManager), nameof(DropServerManager.GetStatusText))]
-    internal class DropServerManager_GetStatusText_Patch
+[HarmonyWrapSafe]
+[HarmonyPatch(typeof(DropServerManager), nameof(DropServerManager.GetStatusText))]
+internal class DropServerManager_GetStatusText_Patch
+{
+    public static bool Prefix(DropServerManager __instance, ref string __result)
     {
-        public static bool Prefix(DropServerManager __instance, ref string __result)
+        if (!__instance.IsBusy)
         {
-            if (!__instance.IsBusy)
-            {
-                __result = null;
-                return false;
-            }
-            __result = "STORAGE SYNC";
+            __result = null;
             return false;
         }
+        __result = "STORAGE SYNC";
+        return false;
     }
 }

@@ -1,9 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.7.34009.444
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GTFO_SimpleProgression", "GTFO_SimpleProgression\GTFO_SimpleProgression.csproj", "{05528054-A2D6-48B1-A9C7-B95CB4996178}"
+Project("{7BDAF4E9-D186-4AC8-9CAC-4BEB9EFD52B8}") = "GTFO_SimpleProgression", "GTFO_SimpleProgression\GTFO_SimpleProgression.csproj", "{B3E2DF11-8ABA-4539-A50D-0C81CF3948C9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5B92992E-C6F4-4AD7-BCA6-4DBE2B1364BD}"
+	ProjectSection(SolutionItems) = preProject
+		GameFolder.props = GameFolder.props
+		Dependencies.props = Dependencies.props
+		README.md = README.md
+		CHANGELOG.md = CHANGELOG.md
+		icon.png = icon.png
+		ManifestInfo.props = ManifestInfo.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +18,9 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{05528054-A2D6-48B1-A9C7-B95CB4996178}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{05528054-A2D6-48B1-A9C7-B95CB4996178}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{05528054-A2D6-48B1-A9C7-B95CB4996178}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{05528054-A2D6-48B1-A9C7-B95CB4996178}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {D4922A8D-59F0-4D93-A20A-EA916518FDD5}
+		{B3E2DF11-8ABA-4539-A50D-0C81CF3948C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3E2DF11-8ABA-4539-A50D-0C81CF3948C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3E2DF11-8ABA-4539-A50D-0C81CF3948C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3E2DF11-8ABA-4539-A50D-0C81CF3948C9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
