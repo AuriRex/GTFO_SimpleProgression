@@ -51,7 +51,7 @@ public class LocalVanityItemManager
 
     private LocalVanityItemDropper Dropper => LocalVanityItemDropper.Instance;
 
-    public void OnExpeditionCompleted(ExpeditionCompletionData data)
+    private void OnExpeditionCompleted(ExpeditionCompletionData data)
     {
         CheckCustomVanityUnlockConditionsMet(data);
 
@@ -62,7 +62,7 @@ public class LocalVanityItemManager
         CheckTotalUniqueCompletionsRequirementMet(data);
     }
 
-    internal void CheckCustomVanityUnlockConditionsMet(ExpeditionCompletionData? data)
+    private void CheckCustomVanityUnlockConditionsMet(ExpeditionCompletionData? data)
     {
         foreach(var method in LocalVanityUnlocker.unlockMethods)
         {
@@ -70,6 +70,9 @@ public class LocalVanityItemManager
             {
                 var toDrop = method?.Invoke(data);
 
+                if (toDrop == null)
+                    continue;
+                
                 foreach(var template in toDrop)
                 {
                     Dropper.TryDropCustomItem(LocalVanityItemPlayerData, template);
@@ -83,7 +86,7 @@ public class LocalVanityItemManager
         }
     }
 
-    public void CheckTotalUniqueCompletionsRequirementMet(ExpeditionCompletionData data)
+    private void CheckTotalUniqueCompletionsRequirementMet(ExpeditionCompletionData data)
     {
         try
         {
@@ -101,37 +104,39 @@ public class LocalVanityItemManager
                 return;
             }
 
-            VanityItemsLayerDropsDataBlock vilddb = VanityItemsLayerDropsDataBlock.GetBlock(vanityItemLayerDropDataBlockPersistentID.Value);
+            var layerDropDataBlock = VanityItemsLayerDropsDataBlock.GetBlock(vanityItemLayerDropDataBlockPersistentID.Value);
 
-            if (vilddb == null)
+            if (layerDropDataBlock == null)
             {
                 _logger.Warning($"[{nameof(CheckTotalUniqueCompletionsRequirementMet)}] {nameof(VanityItemsLayerDropsDataBlock)} with persistent ID {vanityItemLayerDropDataBlockPersistentID} could not be found!");
                 return;
             }
 
-            bool anyDropped = false;
+            var anyDropped = false;
 
-            foreach (var layerDropData in vilddb.LayerDrops)
+            foreach (var layerDropData in layerDropDataBlock.LayerDrops)
             {
                 var layer = layerDropData.Layer.ToCustom();
                 var count = layerDropData.Count;
                 var isAll = layerDropData.IsAll;
 
-                string key = $"{vilddb.name}:{layer}_{count}_{isAll}";
+                var key = $"{layerDropDataBlock.name}:{layer}_{count}_{isAll}";
 
-                if (LocalProgressionManager.Instance.CurrentLoadedLocalProgressionData.GetUniqueExpeditionLayersStateCount(layer) >= count)
+                if (LocalProgressionManager.Instance
+                        .CurrentLoadedLocalProgressionData
+                        .GetUniqueExpeditionLayersStateCount(layer) < count)
+                    continue;
+
+                if (AlreadyAcquiredLayerDrops.HasBeenClaimed(key))
+                    continue;
+                
+                _logger.Notice($"Dropping layer milestone reached rewards for \"{key}\" ...");
+                foreach (var group in layerDropData.Groups)
                 {
-                    if (!AlreadyAcquiredLayerDrops.HasBeenClaimed(key))
-                    {
-                        _logger.Notice($"Dropping layer milestone reached rewards for \"{key}\" ...");
-                        foreach (var group in layerDropData.Groups)
-                        {
-                            anyDropped |= Dropper.DropRandomFromGroup(group, LocalVanityItemPlayerData);
-                        }
-
-                        AlreadyAcquiredLayerDrops.Claim(key);
-                    }
+                    anyDropped |= Dropper.DropRandomFromGroup(group, LocalVanityItemPlayerData);
                 }
+
+                AlreadyAcquiredLayerDrops.Claim(key);
             }
 
             if (anyDropped)
@@ -146,7 +151,7 @@ public class LocalVanityItemManager
         }
     }
 
-    public void CheckFirstTimeExpeditionCompletion(ExpeditionCompletionData data)
+    private void CheckFirstTimeExpeditionCompletion(ExpeditionCompletionData data)
     {
         if (!data.WasFirstTimeCompletion)
             return;
@@ -159,9 +164,9 @@ public class LocalVanityItemManager
                 return;
             }
 
-            RundownDataBlock rddb = RundownDataBlock.GetBlock(data.RundownId);
+            var rundownDataBlock = RundownDataBlock.GetBlock(data.RundownId);
 
-            DropFirstTimeCompletionRewards(rddb.GetExpeditionData(data.ExpeditionTier, data.ExpeditionIndex));
+            DropFirstTimeCompletionRewards(rundownDataBlock.GetExpeditionData(data.ExpeditionTier, data.ExpeditionIndex));
         }
         catch(Exception ex)
         {
@@ -170,15 +175,15 @@ public class LocalVanityItemManager
         }
     }
 
-    public void DropFirstTimeCompletionRewards(GameData.ExpeditionInTierData expeditionData)
+    private void DropFirstTimeCompletionRewards(GameData.ExpeditionInTierData expeditionData)
     {
-        if (expeditionData.VanityItemsDropData.Groups.Count > 0)
+        if (expeditionData.VanityItemsDropData.Groups.Count <= 0)
+            return;
+        
+        _logger.Notice("Dropping first time completion rewards ...");
+        foreach (var group in expeditionData.VanityItemsDropData.Groups)
         {
-            _logger.Notice("Dropping first time completion rewards ...");
-            foreach (var group in expeditionData.VanityItemsDropData.Groups)
-            {
-                Dropper.DropRandomFromGroup(group, LocalVanityItemPlayerData);
-            }
+            Dropper.DropRandomFromGroup(group, LocalVanityItemPlayerData);
         }
     }
 
@@ -203,9 +208,9 @@ public class LocalVanityItemManager
         return false;
     }
 
-    public VanityItemPlayerData ProcessTransaction(VanityItemServiceTransaction trans)
+    internal VanityItemPlayerData ProcessTransaction(VanityItemServiceTransaction trans)
     {
-        if(trans != null)
+        if (trans != null)
         {
             if(trans.AcknowledgeIds != null) AcknowledgeIds(trans.AcknowledgeIds);
             if(trans.TouchIds != null) TouchIds(trans.TouchIds);
@@ -214,21 +219,21 @@ public class LocalVanityItemManager
         return GetVanityItemPlayerData();
     }
 
-    public VanityItemPlayerData GetVanityItemPlayerData()
+    internal VanityItemPlayerData GetVanityItemPlayerData()
     {
         SaveToLocalFile(LocalVanityItemPlayerData);
         return LocalVanityItemPlayerData.ToBaseGame();
     }
 
-    public void AcknowledgeIds(uint[] ids)
+    public void AcknowledgeIds(params uint[] ids)
     {
-        foreach(var id in ids)
+        foreach (var id in ids)
         {
             LocalVanityItemPlayerData.SetFlag(id, LocalVanityItemStorage.VanityItemFlags.Acknowledged);
         }
     }
 
-    public void TouchIds(uint[] ids)
+    public void TouchIds(params uint[] ids)
     {
         foreach (var id in ids)
         {
@@ -236,39 +241,45 @@ public class LocalVanityItemManager
         }
     }
 
-    public static void SaveToLocalFile(LocalVanityItemStorage data)
+    private static void SaveToLocalFile(LocalVanityItemStorage data)
     {
         if (data == null)
             throw new ArgumentNullException(nameof(data));
+        
         Instance._logger.Msg(ConsoleColor.DarkRed, $"Saving VanityItems to disk at: {Paths.VanityItemsFilePath}");
         var json = JsonConvert.SerializeObject(data, Formatting.Indented);
         File.WriteAllText(Paths.VanityItemsFilePath, json);
     }
 
-    public static LocalVanityItemStorage LoadFromLocalFile()
+    private static LocalVanityItemStorage LoadFromLocalFile()
     {
         Instance._logger.Msg(ConsoleColor.Green, $"Loading VanityItems from disk at: {Paths.VanityItemsFilePath}");
+        
         if (!File.Exists(Paths.VanityItemsFilePath))
             return new LocalVanityItemStorage();
+        
         var json = File.ReadAllText(Paths.VanityItemsFilePath);
 
         return JsonConvert.DeserializeObject<LocalVanityItemStorage>(json);
     }
 
-    public static void SaveAcquiredLayerDrops(LocalVanityAcquiredLayerDrops data)
+    private static void SaveAcquiredLayerDrops(LocalVanityAcquiredLayerDrops data)
     {
         if (data == null)
             throw new ArgumentNullException(nameof(data));
+        
         Instance._logger.Fail($"Saving LocalVanityAcquiredLayerDrops to disk at: {Paths.VanityItemsLayerDropsPath}");
         var json = JsonConvert.SerializeObject(data, Formatting.Indented);
         File.WriteAllText(Paths.VanityItemsLayerDropsPath, json);
     }
 
-    public static LocalVanityAcquiredLayerDrops LoadAcquiredLayerDrops()
+    private static LocalVanityAcquiredLayerDrops LoadAcquiredLayerDrops()
     {
         Instance._logger.Success($"Loading LocalVanityAcquiredLayerDrops from disk at: {Paths.VanityItemsLayerDropsPath}");
+        
         if (!File.Exists(Paths.VanityItemsLayerDropsPath))
             return new LocalVanityAcquiredLayerDrops();
+        
         var json = File.ReadAllText(Paths.VanityItemsLayerDropsPath);
 
         return JsonConvert.DeserializeObject<LocalVanityAcquiredLayerDrops>(json);

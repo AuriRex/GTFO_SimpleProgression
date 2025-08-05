@@ -8,6 +8,7 @@ namespace SimpleProgression.Core;
 
 public class LocalProgressionManager
 {
+#warning TODO: Refactor all of this
     public static event Action<ExpeditionSession> OnExpeditionEntered;
     public static event Action<ExpeditionCompletionData> OnExpeditionCompleted;
 
@@ -34,7 +35,7 @@ public class LocalProgressionManager
     public LocalRundownProgression GetOrCreateLocalProgression(string rundownKeyToLoad)
     {
         if (string.IsNullOrEmpty(rundownKeyToLoad))
-            throw new ArgumentException(nameof(rundownKeyToLoad));
+            throw new ArgumentException(null, nameof(rundownKeyToLoad));
 
         if (!HasLocalRundownProgressionLoaded)
         {
@@ -102,7 +103,7 @@ public class LocalProgressionManager
     {
         CurrentActiveSession?.OnExpeditionCompleted(success);
 
-        GetOrCreateLocalProgression(CurrentActiveSession.RundownId);
+        GetOrCreateLocalProgression(CurrentActiveSession?.RundownId);
 
         var hasCompletionData = CurrentLoadedLocalProgressionData.AddSessionResults(CurrentActiveSession, out var completionData);
 

@@ -12,7 +12,7 @@ public class LocalVanityItemDropper
     public static LocalVanityItemDropper Instance => _instance ??= new LocalVanityItemDropper(Plugin.L);
 
     private readonly ILogger _logger;
-    public bool Inited { get; private set; } = false;
+    public bool IsSetup { get; private set; }
 
     private LocalVanityItemDropper(ILogger logger)
     {
@@ -26,13 +26,13 @@ public class LocalVanityItemDropper
 
     private void InitCheck()
     {
-        if (!Inited)
+        if (!IsSetup)
             throw new InvalidOperationException($"{nameof(LocalVanityItemDropper)} has not been initialized yet!");
     }
 
     internal void Init()
     {
-        if (Inited)
+        if (IsSetup)
         {
             _logger.Info($"{nameof(LocalVanityItemDropper)} already setup, skipping ...");
             return;
@@ -55,7 +55,7 @@ public class LocalVanityItemDropper
             }
         }
 
-        Inited = true;
+        IsSetup = true;
     }
 
     public bool TryGetGroup(uint persistentID, out VanityItemsGroupDataBlock itemGroup)
@@ -86,32 +86,31 @@ public class LocalVanityItemDropper
     {
         InitCheck();
 
-        if (TryGetGroup(groupID, out var itemGroup) && !itemGroup.HasAllOwned(playerData))
+        if (!TryGetGroup(groupID, out var itemGroup) || itemGroup.HasAllOwned(playerData))
+            return false;
+        
+        _logger.Msg(ConsoleColor.Magenta, $"Attempting drop of 1 Vanity Item from group \"{itemGroup.name}\" (ID:{groupID})");
+
+        if(!itemGroup.GetNonOwned(playerData).TryPickRandom(out var itemId))
         {
-            _logger.Msg(ConsoleColor.Magenta, $"Attempting drop of 1 Vanity Item from group \"{itemGroup.name}\"");
-
-            if(!itemGroup.GetNonOwned(playerData).TryPickRandom(out var itemId))
-            {
-                _logger.Info($"All items in group already in local player inventory, not dropping!");
-                return false;
-            }
-
-            if(!TryGetTemplate(itemId, out var template))
-            {
-                _logger.Warning($"Template with ID {itemId} wasn't found!");
-            }
-
-            var item = new LocalVanityItemStorage.LocalVanityItem
-            {
-                ItemID = itemId,
-                Flags = silentDrop ? LocalVanityItemStorage.VanityItemFlags.ALL : LocalVanityItemStorage.VanityItemFlags.None
-            };
-
-            playerData.Items.Add(item);
-            _logger.Info($"Dropped Vanity Item \"{template?.publicName ?? $"ID:{itemId}"}\"!");
-            return true;
+            _logger.Info($"All items in group already in local player inventory, not dropping!");
+            return false;
         }
-        return false;
+
+        if(!TryGetTemplate(itemId, out var template))
+        {
+            _logger.Warning($"Template with ID {itemId} wasn't found!");
+        }
+
+        var item = new LocalVanityItemStorage.LocalVanityItem
+        {
+            ItemID = itemId,
+            Flags = silentDrop ? LocalVanityItemStorage.VanityItemFlags.ALL : LocalVanityItemStorage.VanityItemFlags.None
+        };
+
+        playerData.Items.Add(item);
+        _logger.Info($"Dropped Vanity Item \"{template?.publicName ?? $"ID:{itemId}"}\"!");
+        return true;
     }
 
     internal bool TryDropCustomItem(LocalVanityItemStorage playerData, VanityItemsTemplateDataBlock template, bool silentDrop = false, bool ignoreDuplicateDrops = false)
@@ -141,7 +140,7 @@ public class LocalVanityItemDropper
     {
         InitCheck();
 
-        template = ItemTemplates.Where(t => t.persistentID == persistentID).FirstOrDefault();
+        template = ItemTemplates.FirstOrDefault(t => t.persistentID == persistentID);
         return template != null;
     }
 
@@ -161,11 +160,11 @@ public class LocalVanityItemDropper
         InitCheck();
 
         _logger.Warning("Dropping initial Vanity Items ...");
-        DropRandomFromGroup(3, playerData, true);
-        DropRandomFromGroup(4, playerData, true);
-        DropRandomFromGroup(5, playerData, true);
-        DropRandomFromGroup(6, playerData, true);
-        DropRandomFromGroup(7, playerData, true);
+        DropRandomFromGroup(3, playerData, silentDrop: true);
+        DropRandomFromGroup(4, playerData, silentDrop: true);
+        DropRandomFromGroup(5, playerData, silentDrop: true);
+        DropRandomFromGroup(6, playerData, silentDrop: true);
+        DropRandomFromGroup(7, playerData, silentDrop: true);
     }
 
     internal bool TryGetBlockFromCustomKey(string customKey, out VanityItemsTemplateDataBlock block)

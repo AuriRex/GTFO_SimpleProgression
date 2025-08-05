@@ -38,8 +38,8 @@ public class LocalBoosterManager
         SaveToBoosterFile(LocalBoosterImplantPlayerData);
     }
 
-    // called everytime a new booster is selected for the first time to update the value / missed boosters are aknowledged / a booster has been dropped
-    public BoosterImplantPlayerData UpdateBoosterImplantPlayerData(BoosterImplantTransaction transaction) // returns basegame BoosterImplantPlayerData
+    // called everytime a new booster is selected for the first time to update the value / missed boosters are acknowledged / a booster has been dropped
+    internal BoosterImplantPlayerData UpdateBoosterImplantPlayerData(BoosterImplantTransaction transaction) // returns basegame BoosterImplantPlayerData
     {
         if (Instance.Disabled)
         {
@@ -88,7 +88,7 @@ public class LocalBoosterManager
         BoostersToBeConsumed = Array.Empty<uint>();
     }
 
-    public void EndSession(EndSessionRequest.PerBoosterCategoryInt boosterCurrency/*, bool success, string sessionBlob, uint maxBackendBoosterTemplateId, int buildRev*/)
+    internal void EndSession(EndSessionRequest.PerBoosterCategoryInt boosterCurrency/*, bool success, string sessionBlob, uint maxBackendBoosterTemplateId, int buildRev*/)
     {
         if (Instance.Disabled)
         {
@@ -124,12 +124,12 @@ public class LocalBoosterManager
         SaveBoostersToDisk();
     }
 
-    public void StartSession(uint[] boosterIds, string sessionId)
+    internal void StartSession(uint[] boosterIds, string sessionId)
     {
         BoostersToBeConsumed = boosterIds;
     }
 
-    public static void SaveToBoosterFile(LocalBoosterImplantPlayerData data)
+    private static void SaveToBoosterFile(LocalBoosterImplantPlayerData data)
     {
         if (Instance.Disabled)
         {
@@ -138,12 +138,13 @@ public class LocalBoosterManager
 
         if (data == null)
             throw new ArgumentNullException(nameof(data));
+        
         Instance._logger.Msg(ConsoleColor.DarkRed, $"Saving boosters to disk at: {Paths.BoostersFilePath}");
         var json = JsonConvert.SerializeObject(data, Formatting.Indented);
         File.WriteAllText(Paths.BoostersFilePath, json);
     }
 
-    public static LocalBoosterImplantPlayerData LoadFromBoosterFile()
+    private static LocalBoosterImplantPlayerData LoadFromBoosterFile()
     {
         if (Instance.Disabled)
         {
@@ -151,10 +152,11 @@ public class LocalBoosterManager
         }
 
         Instance._logger.Msg(ConsoleColor.Green, $"Loading boosters from disk at: {Paths.BoostersFilePath}");
+        
         if (!File.Exists(Paths.BoostersFilePath))
             return new LocalBoosterImplantPlayerData();
+        
         var json = File.ReadAllText(Paths.BoostersFilePath);
-
         return JsonConvert.DeserializeObject<LocalBoosterImplantPlayerData>(json);
     }
 }
