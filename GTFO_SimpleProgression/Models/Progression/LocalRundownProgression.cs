@@ -96,8 +96,8 @@ public class LocalRundownProgression
 			rundownId = 0;
 		}
 
-		char tierCharacter = session.ExpeditionId[0];
-		if(int.TryParse(session.ExpeditionId.Skip(1).ToString(), out var expeditionIndex))
+		var tierCharacter = session.ExpeditionId[0];
+		if(int.TryParse(session.ExpeditionId.Substring(1), out var expeditionIndex))
 		{
 			expeditionIndex--;
 		}
