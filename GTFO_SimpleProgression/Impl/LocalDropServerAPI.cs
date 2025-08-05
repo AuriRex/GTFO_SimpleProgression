@@ -45,6 +45,7 @@ internal class LocalDropServerAPI : Il2CppSystem.Object // : IDropServerClientAP
         Plugin.L.Warning($"{nameof(LocalDropServerAPI)}: {nameof(NewSessionAsync)}: {request.Rundown} {request.Expedition} {request.SessionId}");
 
         LocalProgressionManager.Instance.StartNewExpeditionSession(request.Rundown, request.Expedition, request.SessionId);
+        LocalBoosterManager.Instance.StartSession(request.BoosterIds, request.SessionId);
 
         return Task.FromResult(new NewSessionResult()
         {
