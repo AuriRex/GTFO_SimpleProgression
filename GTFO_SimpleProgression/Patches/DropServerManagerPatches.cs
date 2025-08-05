@@ -6,7 +6,7 @@ namespace SimpleProgression.Patches;
 
 [HarmonyWrapSafe]
 [HarmonyPatch(typeof(DropServerManager), nameof(DropServerManager.OnTitleDataUpdated))]
-internal class DropServerManager_OnTitleDataUpdated_Patch
+internal class DropServerManager__OnTitleDataUpdated__Patch
 {
     public static bool Prefix(DropServerManager __instance)
     {
@@ -18,7 +18,7 @@ internal class DropServerManager_OnTitleDataUpdated_Patch
 
 [HarmonyWrapSafe]
 [HarmonyPatch(typeof(DropServerManager), nameof(DropServerManager.GetStatusText))]
-internal class DropServerManager_GetStatusText_Patch
+internal class DropServerManager__GetStatusText__Patch
 {
     public static bool Prefix(DropServerManager __instance, ref string __result)
     {

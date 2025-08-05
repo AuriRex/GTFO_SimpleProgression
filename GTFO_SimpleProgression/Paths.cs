@@ -76,4 +76,19 @@ internal class Paths
             return _boostersPath;
         }
     }
+    
+    
+    private static string _titleDataPath;
+    public static string LocalTitleDataFolderPath
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_titleDataPath))
+            {
+                _titleDataPath = Path.Combine(SaveFolderPath, "TitleData/");
+                Directory.CreateDirectory(_titleDataPath);
+            }
+            return _titleDataPath;
+        }
+    }
 }
