@@ -27,6 +27,26 @@ internal static class PlayFabManager__TryGetRundownTimerData__Patch
     }
 }
 
+[HarmonyPatch(typeof(PlayFabManager), nameof(PlayFabManager.TryGetStartupScreenData))]
+internal static class PlayFabManager__TryGetStartupScreenData__Patch
+{
+    public static bool Prefix(ref bool __result, out StartupScreenData data)
+    {
+        data = new StartupScreenData();
+        data.AllowedToStartGame = true;
+        data.ShowOvertoneButton = false;
+        data.IntroText = "Startup Override :)";
+        data.ShowBugReportButton = false;
+        data.ShowIntroText = false;
+        data.ShowRoadmapButton = false;
+        data.ShowDiscordButton = false;
+
+        __result = true;
+        
+        return SKIP_OG;
+    }
+}
+
 [HarmonyPatch(typeof(PlayFabManager), nameof(PlayFabManager.OnGetAuthSessionTicketResponse))]
 internal static class PlayFabManager__OnGetAuthSessionTicketResponse__Patch
 {
@@ -59,7 +79,9 @@ internal static class PlayFabManager__OnGetAuthSessionTicketResponse__Patch
         PlayFabManager.LoggedInSeconds = Clock.Time;
 
         OnLoggedIn();
-        
+
+        PlayFabManager.GlobalTitleData["DropServer"] = "https://localhost:12345";
+
         PlayFabManager.OnLoginSuccess?.Invoke();
         PlayFabManager.OnTitleDataUpdated?.Invoke();
 
