@@ -17,7 +17,7 @@ public static class Extensions
             return false;
         }
 
-        value = array[UnityEngine.Random.RandomRangeInt(0, array.Length - 1)];
+        value = array[UnityEngine.Random.Range(0, array.Length)];
         return true;
     }
 

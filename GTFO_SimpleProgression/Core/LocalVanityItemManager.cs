@@ -12,6 +12,19 @@ namespace SimpleProgression.Core;
 
 public class LocalVanityItemManager
 {
+    /// <summary>
+    /// Only gets invoked the first time a layer drop has been completed.<br/>
+    /// Check <see cref="AlreadyAcquiredLayerDrops"/> instead for any already completed ones.<br/>
+    /// params:
+    /// <list type="bullet">
+    /// <item><c>Layers (layer)</c>: the layer to count.</item>
+    /// <item><c>int (count)</c>: the completion requirement, how many of x layers the player has to finish.</item>
+    /// <item><c>bool (isAll)</c>: is the count all available layers of that type? (currently ignored).</item>
+    /// <item><c>string (key)</c>: A key consisting of the LayerDropDataBlock name and all 3 previous values.</item>
+    /// </list>
+    /// </summary>
+    public static event Action<Layers, int, bool, string> OnLayerDropCompleted;
+    
     private static LocalVanityItemManager _instance;
     public static LocalVanityItemManager Instance => _instance ??= new LocalVanityItemManager(Plugin.L);
 
@@ -137,6 +150,16 @@ public class LocalVanityItemManager
                 }
 
                 AlreadyAcquiredLayerDrops.Claim(key);
+
+                try
+                {
+                    OnLayerDropCompleted?.Invoke(layer, count, isAll, key);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error("Exception thrown while invoking event {}");
+                    _logger.Exception(ex);
+                }
             }
 
             if (anyDropped)

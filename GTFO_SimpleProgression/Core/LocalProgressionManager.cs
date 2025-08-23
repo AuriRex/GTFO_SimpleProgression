@@ -8,7 +8,7 @@ namespace SimpleProgression.Core;
 
 public class LocalProgressionManager
 {
-#warning TODO: Refactor all of this
+#warning TODO: Refactor all of this, or not, idk
     public static event Action<ExpeditionSession> OnExpeditionEntered;
     public static event Action<ExpeditionCompletionData> OnExpeditionCompleted;
 
