@@ -2,13 +2,13 @@
 using SimpleProgression.Interfaces;
 using SimpleProgression.Models.Progression;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace SimpleProgression.Core;
 
 public class LocalProgressionManager
 {
-#warning TODO: Refactor all of this, or not, idk
     public static event Action<ExpeditionSession> OnExpeditionEntered;
     public static event Action<ExpeditionCompletionData> OnExpeditionCompleted;
 
@@ -25,39 +25,48 @@ public class LocalProgressionManager
 
     public ExpeditionSession CurrentActiveSession { get; private set; }
 
+    /// <summary>
+    /// Loaded Rundown Progression Data<br/>
+    /// Key: <c>Local_{RundownDBPersistentID}</c> // e.g. <c>Local_41</c>
+    /// </summary>
+    public Dictionary<string, LocalRundownProgression> LoadedProgressionData { get; } = new();
 
-    public LocalRundownProgression CurrentLoadedLocalProgressionData { get; private set; } = null;
-
-    public bool HasLocalRundownProgressionLoaded => CurrentLoadedLocalProgressionData != null;
-
-    private string _loadedRundownKey;
-
-    public LocalRundownProgression GetOrCreateLocalProgression(string rundownKeyToLoad)
+    /// <summary>
+    /// Try to get loaded progression data.
+    /// </summary>
+    /// <param name="rundownKey">The rundown key of the progression data.</param>
+    /// <param name="progression">The loaded progression data or null if false.</param>
+    /// <returns><c>True</c> if the progression file is loaded.</returns>
+    public bool TryGetLocalProgression(string rundownKey, out LocalRundownProgression progression)
     {
-        if (string.IsNullOrEmpty(rundownKeyToLoad))
-            throw new ArgumentException(null, nameof(rundownKeyToLoad));
-
-        if (!HasLocalRundownProgressionLoaded)
-        {
-            CurrentLoadedLocalProgressionData = LoadFromProgressionFile(rundownKeyToLoad);
-            return CurrentLoadedLocalProgressionData;
-        }
-
-        if (rundownKeyToLoad == _loadedRundownKey)
-            return CurrentLoadedLocalProgressionData;
-
-        _logger.Debug($"{nameof(GetOrCreateLocalProgression)}() {nameof(rundownKeyToLoad)} changed. ({_loadedRundownKey} -> {rundownKeyToLoad})");
-
-        SaveToProgressionFile(CurrentLoadedLocalProgressionData);
-
-        CurrentLoadedLocalProgressionData = LoadFromProgressionFile(rundownKeyToLoad);
-
-        return CurrentLoadedLocalProgressionData;
+        return LoadedProgressionData.TryGetValue(rundownKey, out progression);
     }
 
-    public void StartNewExpeditionSession(string rundownId, string expeditionId, string sessionId)
+    public LocalRundownProgression GetOrCreateLocalProgression(uint rundownDataBlockPersistentId)
     {
-        CurrentActiveSession = ExpeditionSession.InitNewSession(rundownId, expeditionId, sessionId, _logger);
+        return GetOrCreateLocalProgression($"Local_{rundownDataBlockPersistentId}");
+    }
+    
+    public LocalRundownProgression GetOrCreateLocalProgression(string rundownKeyToLoad)
+    {
+        if (string.IsNullOrWhiteSpace(rundownKeyToLoad))
+            throw new ArgumentException(null, nameof(rundownKeyToLoad));
+        
+        if (TryGetLocalProgression(rundownKeyToLoad, out var progression))
+        {
+            return progression;
+        }
+        
+        var loadedProgression = LoadFromProgressionFile(rundownKeyToLoad);
+
+        LoadedProgressionData.Add(rundownKeyToLoad, loadedProgression);
+        
+        return loadedProgression;
+    }
+
+    public void StartNewExpeditionSession(string rundownKey, string expeditionId, string sessionId)
+    {
+        CurrentActiveSession = ExpeditionSession.InitNewSession(rundownKey, expeditionId, sessionId, _logger);
     }
 
     public void OnLevelEntered()
@@ -66,7 +75,7 @@ public class LocalProgressionManager
         OnExpeditionEntered?.Invoke(CurrentActiveSession);
     }
 
-    public void IncreaseLayerProgression(string strLayer, string strState)
+    internal void IncreaseLayerProgression(string strLayer, string strState)
     {
         if (!Enum.TryParse<Layers>(strLayer, out var layer)
             | !Enum.TryParse<LayerState>(strState, out var state))
@@ -78,17 +87,17 @@ public class LocalProgressionManager
         CurrentActiveSession?.SetLayer(layer, state);
     }
 
-    public void SaveAtCheckpoint()
+    internal void SaveAtCheckpoint()
     {
         CurrentActiveSession?.OnCheckpointSave();
     }
 
-    public void ReloadFromCheckpoint()
+    internal void ReloadFromCheckpoint()
     {
         CurrentActiveSession?.OnCheckpointReset();
     }
 
-    public void ArtifactCountUpdated(int mutedCount, int boldCount, int aggressiveCount)
+    internal void ArtifactCountUpdated(int mutedCount, int boldCount, int aggressiveCount)
     {
         if (CurrentActiveSession == null)
             return;
@@ -99,33 +108,35 @@ public class LocalProgressionManager
         _logger.Info($"current Artifact count: Muted:{mutedCount}, Bold:{boldCount}, Aggressive:{aggressiveCount}");
     }
 
-    public void EndCurrentExpeditionSession(bool success)
+    internal void EndCurrentExpeditionSession(bool success)
     {
         CurrentActiveSession?.OnExpeditionCompleted(success);
 
-        GetOrCreateLocalProgression(CurrentActiveSession?.RundownId);
+        var rundownKey = CurrentActiveSession?.RundownKey;
+        
+        var progressionFile = GetOrCreateLocalProgression(rundownKey);
 
-        var hasCompletionData = CurrentLoadedLocalProgressionData.AddSessionResults(CurrentActiveSession, out var completionData);
+        var hasCompletionData = progressionFile.AddSessionResults(CurrentActiveSession, out var completionData);
 
+        SaveToProgressionFile(progressionFile, rundownKey);
+        
         CurrentActiveSession = null;
 
-        SaveToProgressionFile(CurrentLoadedLocalProgressionData);
+        if (!hasCompletionData)
+            return;
+        
+        _logger.Notice($"Expedition time: {completionData.RawSessionData.EndTime - completionData.RawSessionData.StartTime}");
 
-        if (hasCompletionData)
-        {
-            _logger.Notice($"Expedition time: {completionData.RawSessionData.EndTime - completionData.RawSessionData.StartTime}");
-
-            OnExpeditionCompleted?.Invoke(completionData);
-        }
+        OnExpeditionCompleted?.Invoke(completionData);
     }
 
-    public void SaveToProgressionFile(LocalRundownProgression data)
+    private void SaveToProgressionFile(LocalRundownProgression data, string rundownKey)
     {
-        SaveToProgressionFile(data, _loadedRundownKey, out var path);
+        SaveToProgressionFile(data, rundownKey, out var path);
         Instance._logger.Msg(ConsoleColor.DarkRed, $"Saved progression file to disk at: {path}");
     }
 
-    public static void SaveToProgressionFile(LocalRundownProgression data, string rundownKeyToSave, out string path)
+    private static void SaveToProgressionFile(LocalRundownProgression data, string rundownKeyToSave, out string path)
     {
         if (data == null)
             throw new ArgumentNullException(nameof(data));
@@ -138,7 +149,7 @@ public class LocalProgressionManager
         File.WriteAllText(path, json);
     }
 
-    public static string GetLocalProgressionFilePath(string rundownKey)
+    private static string GetLocalProgressionFilePath(string rundownKey)
     {
         foreach(var c in Path.GetInvalidFileNameChars())
         {
@@ -148,15 +159,14 @@ public class LocalProgressionManager
         return Path.Combine(Paths.SaveFolderPath, $"{rundownKey}.json");
     }
 
-    public LocalRundownProgression LoadFromProgressionFile(string rundownKey)
+    private LocalRundownProgression LoadFromProgressionFile(string rundownKey)
     {
         var loadedLocalProgressionData = LoadFromProgressionFile(rundownKey, out var path, out var isNew);
-        _loadedRundownKey = rundownKey;
 
         if (isNew)
         {
             Instance._logger.Msg(ConsoleColor.Green, $"Created progression file at: {path}");
-            SaveToProgressionFile(loadedLocalProgressionData, _loadedRundownKey, out var initialSavePath);
+            SaveToProgressionFile(loadedLocalProgressionData, rundownKey, out var initialSavePath);
             Instance._logger.Msg(ConsoleColor.DarkRed, $"Saved fresh progression file to disk at: {initialSavePath}");
         }
         else
@@ -167,7 +177,7 @@ public class LocalProgressionManager
         return loadedLocalProgressionData;
     }
 
-    public static LocalRundownProgression LoadFromProgressionFile(string rundownKey, out string path, out bool isNew)
+    private static LocalRundownProgression LoadFromProgressionFile(string rundownKey, out string path, out bool isNew)
     {
         path = GetLocalProgressionFilePath(rundownKey);
 

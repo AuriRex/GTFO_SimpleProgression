@@ -7,23 +7,23 @@ namespace SimpleProgression.Models.Progression;
 
 public class ExpeditionSession
 {
-    private ExpeditionSessionData SavedData { get; set; } = null;
-    public ExpeditionSessionData CurrentData { get; private set; } = null;
-    public bool HasCheckpointBeenUsed { get; private set; } = false;
-    public bool ExpeditionSurvived { get; private set; } = false;
+    private ExpeditionSessionData SavedData { get; set; }
+    public ExpeditionSessionData CurrentData { get; private set; }
+    public bool HasCheckpointBeenUsed { get; private set; }
+    public bool ExpeditionSurvived { get; private set; }
     public DateTimeOffset DropTime { get; private set; }
     public DateTimeOffset StartTime { get; private set; }
     public DateTimeOffset EndTime { get; private set; }
 
     private readonly ILogger _logger;
-    public string RundownId { get; private set; } = string.Empty;
-    public string ExpeditionId { get; private set; } = string.Empty;
-    public string SessionId { get; private set; } = string.Empty;
+    public string RundownKey { get; private set; }
+    public string ExpeditionId { get; private set; }
+    public string SessionId { get; private set; }
 
     public int ArtifactsCollected => MutedArtifactsCollected + BoldArtifactsCollected + AggressiveArtifactsCollected;
-    public int MutedArtifactsCollected { get; internal set; } = 0;
-    public int BoldArtifactsCollected { get; internal set; } = 0;
-    public int AggressiveArtifactsCollected { get; internal set; } = 0;
+    public int MutedArtifactsCollected { get; internal set; }
+    public int BoldArtifactsCollected { get; internal set; }
+    public int AggressiveArtifactsCollected { get; internal set; }
 
     public bool PrisonerEfficiencyCompleted
     {
@@ -35,9 +35,9 @@ public class ExpeditionSession
         }
     }
 
-    private ExpeditionSession(string rundownId, string expeditionId, string sessionId, ILogger logger)
+    private ExpeditionSession(string rundownKey, string expeditionId, string sessionId, ILogger logger)
     {
-        RundownId = rundownId;
+        RundownKey = rundownKey;
         ExpeditionId = expeditionId;
         SessionId = sessionId;
         _logger = logger;
@@ -48,11 +48,11 @@ public class ExpeditionSession
         SetLayer(Layers.Main, LayerState.Entered);
     }
 
-    internal static ExpeditionSession InitNewSession(string rundownId, string expeditionId, string sessionId, ILogger logger)
+    internal static ExpeditionSession InitNewSession(string rundownKey, string expeditionId, string sessionId, ILogger logger)
     {
-        var session = new ExpeditionSession(rundownId, expeditionId, sessionId, logger);
+        var session = new ExpeditionSession(rundownKey, expeditionId, sessionId, logger);
 
-        logger.Info($"[{nameof(ExpeditionSession)}] New expedition session started! (R:{rundownId}, E:{expeditionId}, S:{sessionId})");
+        logger.Info($"[{nameof(ExpeditionSession)}] New expedition session started! (R:{rundownKey}, E:{expeditionId}, S:{sessionId})");
             
         return session;
     }
@@ -84,7 +84,7 @@ public class ExpeditionSession
     {
         EndTime = DateTimeOffset.UtcNow;
 
-        _logger.Info($"[{nameof(ExpeditionSession)}] Expedition session has ended! (R:{RundownId}, E:{ExpeditionId}, S:{SessionId}){(success ? " Expedition Successful!" : string.Empty)}");
+        _logger.Info($"[{nameof(ExpeditionSession)}] Expedition session has ended! (R:{RundownKey}, E:{ExpeditionId}, S:{SessionId}){(success ? " Expedition Successful!" : string.Empty)}");
 
         if (success)
         {

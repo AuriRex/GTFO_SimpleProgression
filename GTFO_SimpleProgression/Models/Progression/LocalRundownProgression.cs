@@ -15,6 +15,9 @@ public class LocalRundownProgression
 	public static float ARTIFACT_HEAT_MIN { get; set; } = 0.2f;
 	public static float ARTIFACT_HEAT_UNCOMPLETED_MIN { get; set; } = 0.5f;
 
+	/// <summary>
+	/// Key: ExpeditionTierChar + (ExpeditionIndex + 1) => <c>A1</c> == ATier expedition index 0
+	/// </summary>
 	public Dictionary<string, Expedition> Expeditions = new Dictionary<string, Expedition>();
 
 	private ILogger _logger = null!;
@@ -24,7 +27,7 @@ public class LocalRundownProgression
 	/// For example: how many unique <see cref="Layers.Main"/> objectives have been <see cref="LayerState.Completed"/>
 	/// </summary>
 	/// <param name="layer">The layer to check</param>
-	/// <param name="state">The state that should compared against</param>
+	/// <param name="state">The state that should be compared against</param>
 	/// <returns></returns>
 	public int GetUniqueExpeditionLayersStateCount(Layers layer = Layers.Main, LayerState state = LayerState.Completed)
 	{
@@ -90,9 +93,9 @@ public class LocalRundownProgression
 			}
 		}
 
-		if (!uint.TryParse(session.RundownId.Replace("Local_", string.Empty), out var rundownId))
+		if (!uint.TryParse(session.RundownKey.Replace("Local_", string.Empty), out var rundownId))
 		{
-			_logger?.Error($"[{nameof(LocalRundownProgression)}.{nameof(AddSessionResults)}] Could not parse rundown id from \"{session.RundownId}\"!");
+			_logger?.Error($"[{nameof(LocalRundownProgression)}.{nameof(AddSessionResults)}] Could not parse rundown id from \"{session.RundownKey}\"!");
 			rundownId = 0;
 		}
 

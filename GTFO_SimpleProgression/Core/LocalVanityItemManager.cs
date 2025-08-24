@@ -136,7 +136,7 @@ public class LocalVanityItemManager
                 var key = $"{layerDropDataBlock.name}:{layer}_{count}_{isAll}";
 
                 if (LocalProgressionManager.Instance
-                        .CurrentLoadedLocalProgressionData
+                        .GetOrCreateLocalProgression(data.RundownKey)
                         .GetUniqueExpeditionLayersStateCount(layer) < count)
                     continue;
 

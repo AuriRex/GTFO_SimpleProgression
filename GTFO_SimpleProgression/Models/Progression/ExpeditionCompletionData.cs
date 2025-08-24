@@ -3,7 +3,7 @@
 public struct ExpeditionCompletionData
 {
     public readonly bool Success => RawSessionData.ExpeditionSurvived;
-    public readonly string RundownIdString => RawSessionData.RundownId;
+    public readonly string RundownKey => RawSessionData.RundownKey;
     public uint RundownId { get; internal set; }
     public eRundownTier ExpeditionTier { get; internal set; }
     public int ExpeditionIndex { get; internal set; }
