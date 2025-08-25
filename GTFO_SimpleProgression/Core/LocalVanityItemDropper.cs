@@ -38,6 +38,13 @@ public class LocalVanityItemDropper
             return;
         }
 
+        LoadTemplatesGroupsAndDropData();
+
+        IsSetup = true;
+    }
+
+    internal void LoadTemplatesGroupsAndDropData()
+    {
         ItemGroups = VanityItemsGroupDataBlock.GetAllBlocks();
         ItemTemplates = VanityItemsTemplateDataBlock.GetAllBlocks();
         ItemDropData = VanityItemsLayerDropsDataBlock.GetAllBlocks();
@@ -45,17 +52,14 @@ public class LocalVanityItemDropper
         if (ItemGroups.Length == 0 && ItemDropData.Length == 0)
         {
             _logger.Msg(ConsoleColor.Magenta, $"{nameof(LocalVanityItemDropper)}.{nameof(Init)}() complete, no groups or layer drops set! (Found {ItemTemplates.Length} Templates)");
-        }
-        else
-        {
-            _logger.Msg(ConsoleColor.Magenta, $"{nameof(LocalVanityItemDropper)}.{nameof(Init)}() complete, retrieved {ItemTemplates.Length} Templates, {ItemGroups.Length} Groups and {ItemDropData.Length} Layer Drops. Layer Drops:");
-            foreach (var dd in ItemDropData)
-            {
-                _logger.Info($" > {dd.name}: #Drops: {dd.LayerDrops?.Count ?? 0}, Enabled: {dd.internalEnabled}");
-            }
+            return;
         }
 
-        IsSetup = true;
+        _logger.Msg(ConsoleColor.Magenta, $"{nameof(LocalVanityItemDropper)}.{nameof(Init)}() complete, retrieved {ItemTemplates.Length} Templates, {ItemGroups.Length} Groups and {ItemDropData.Length} Layer Drops. Layer Drops:");
+        foreach (var dd in ItemDropData)
+        {
+            _logger.Info($" > {dd.name}: #Drops: {dd.LayerDrops?.Count ?? 0}, Enabled: {dd.internalEnabled}");
+        }
     }
 
     public bool TryGetGroup(uint persistentID, out VanityItemsGroupDataBlock itemGroup)
@@ -105,7 +109,9 @@ public class LocalVanityItemDropper
         var item = new LocalVanityItemStorage.LocalVanityItem
         {
             ItemID = itemId,
-            Flags = silentDrop ? LocalVanityItemStorage.VanityItemFlags.ALL : LocalVanityItemStorage.VanityItemFlags.None
+            Flags = silentDrop ? LocalVanityItemStorage.VanityItemFlags.ALL : LocalVanityItemStorage.VanityItemFlags.None,
+            // We use a custom key for any items in groups that aren't present in the vanilla game.
+            CustomKey = IsCustomGroup(itemGroup) ? template.name : null,
         };
 
         playerData.Items.Add(item);
@@ -113,15 +119,14 @@ public class LocalVanityItemDropper
         return true;
     }
 
-    internal bool TryDropCustomItem(LocalVanityItemStorage playerData, VanityItemsTemplateDataBlock template, bool silentDrop = false, bool ignoreDuplicateDrops = false)
+    internal bool TryDropCustomItem(LocalVanityItemStorage playerData, VanityItemsTemplateDataBlock template, bool silentDrop = false, bool doDropAlreadyOwnedItem = false)
     {
         InitCheck();
 
-        if (ignoreDuplicateDrops || playerData.Items.FirstOrDefault(item => item.IsCustom && item.CustomKey == template.name) == null)
+        if (doDropAlreadyOwnedItem || playerData.Items.FirstOrDefault(item => item.IsCustom && item.CustomKey == template.name) == null)
         {
             var item = new LocalVanityItemStorage.LocalVanityItem
             {
-                IsCustom = true,
                 CustomKey = template.name,
                 ItemID = template.persistentID,
                 Flags = silentDrop ? LocalVanityItemStorage.VanityItemFlags.ALL : LocalVanityItemStorage.VanityItemFlags.None
@@ -171,5 +176,18 @@ public class LocalVanityItemDropper
     {
         block = ItemTemplates.FirstOrDefault(template => template.name == customKey);
         return block != null;
+    }
+
+    internal bool IsCustomGroup(uint groupId)
+    {
+        if (!TryGetGroup(groupId, out var group))
+            return false;
+
+        return IsCustomGroup(group);
+    }
+    
+    internal bool IsCustomGroup(VanityItemsGroupDataBlock group)
+    {
+        return !AllVanityGroupsToUnlock.GAME_DEFAULT_GROUPS.Contains(group.name);
     }
 }

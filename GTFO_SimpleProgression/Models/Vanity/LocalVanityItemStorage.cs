@@ -4,6 +4,8 @@ using SimpleProgression.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Clonesoft.Json;
+using GameData;
 
 namespace SimpleProgression.Models.Vanity;
 
@@ -45,8 +47,10 @@ public class LocalVanityItemStorage
     {
         public uint ItemID { get; set; } = 0;
         public VanityItemFlags Flags { get; set; } = VanityItemFlags.None;
-        public bool IsCustom { get; set; } = false;
-        public string CustomKey { get; set; } = string.Empty;
+        
+        [JsonIgnore]
+        public bool IsCustom => !string.IsNullOrWhiteSpace(CustomKey);
+        public string CustomKey { get; set; } = null;
     }
 
     [Flags]
@@ -64,6 +68,11 @@ public class LocalVanityItemStorage
     {
         var validItems = customData.GetValidItemsAndFixCustomIDs().ToList();
 
+        if (Plugin.IsAllVanityLoaded)
+        {
+            AddNonOwnedBlocks(ref validItems);
+        }
+        
         var vipd = new VanityItemPlayerData(ClassInjector.DerivedConstructorPointer<VanityItemPlayerData>());
 
         vipd.Items = new(validItems.Count);
@@ -82,6 +91,35 @@ public class LocalVanityItemStorage
         }
 
         return vipd;
+    }
+
+    private static void AddNonOwnedBlocks(ref List<LocalVanityItem> validItems)
+    {
+        var groupDBNames = LocalVanityItemManager.Instance.AllVanityGroupsToUnlock.GroupsToUnlock;
+
+        HashSet<uint> allTemplateIds = new();
+        
+        foreach (var block in VanityItemsGroupDataBlock.GetAllBlocks())
+        {
+            if (!groupDBNames.Contains(block.name))
+                continue;
+
+            foreach (var item in block.Items)
+            {
+                allTemplateIds.Add(item);
+            }
+        }
+        
+        var list = validItems;
+        var otherBlocks = VanityItemsTemplateDataBlock.GetAllBlocks().Where(block => allTemplateIds.Contains(block.persistentID) && list.All(vi => vi.ItemID != block.persistentID));
+        foreach (var block in otherBlocks)
+        {
+            validItems.Add(new LocalVanityItem()
+            {
+                ItemID = block.persistentID,
+                Flags = VanityItemFlags.ALL
+            });
+        }
     }
 
     public static LocalVanityItemStorage FromBaseGame(VanityItemPlayerData vanityPlayerData)

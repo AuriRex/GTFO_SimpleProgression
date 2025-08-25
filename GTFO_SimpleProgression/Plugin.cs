@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
@@ -18,7 +19,9 @@ namespace SimpleProgression;
 [BepInPlugin(GUID, MOD_NAME, VERSION)]
 public class Plugin : BasePlugin
 {
-    public const string GUID = "dev.AuriRex.gtfo.SimpleProgression";
+    public const string ALLVANITY_GUID = "dev.aurirex.gtfo.allvanity";
+    
+    public const string GUID = "dev.aurirex.gtfo.simpleprogression";
     public const string MOD_NAME = ManifestInfo.TSName;
     public const string VERSION = ManifestInfo.TSVersion;
 
@@ -26,6 +29,9 @@ public class Plugin : BasePlugin
 
     private static readonly Harmony _harmony = new(GUID);
 
+    internal static bool IsAllVanityLoaded => IL2CPPChainloader.Instance.Plugins.Any(
+        kvp => string.Equals(kvp.Key, ALLVANITY_GUID, StringComparison.InvariantCultureIgnoreCase));
+    
     public override void Load()
     {
         L = new Logger(Log);

@@ -45,6 +45,19 @@ internal class Paths
             return _vanityItemsFilePath;
         }
     }
+    
+    private static string _vanityUnlockGroupsFilePath;
+    public static string VanityUnlockGroupsFilePath
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_vanityUnlockGroupsFilePath))
+            {
+                _vanityUnlockGroupsFilePath = Path.Combine(BepInEx.Paths.ConfigPath, "SimpleProgression_VanityGroupUnlockData.json");
+            }
+            return _vanityUnlockGroupsFilePath;
+        }
+    }
 
 
     private static string _vanityFolderPath;

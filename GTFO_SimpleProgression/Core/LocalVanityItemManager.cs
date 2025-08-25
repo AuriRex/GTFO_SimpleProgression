@@ -2,7 +2,6 @@
 using DropServer.VanityItems;
 using GameData;
 using SimpleProgression.Interfaces;
-using SimpleProgression.Interop;
 using SimpleProgression.Models.Progression;
 using SimpleProgression.Models.Vanity;
 using System;
@@ -51,11 +50,37 @@ public class LocalVanityItemManager
                 {
                     Dropper.DropFirstTimePlayingItems(_localVanityItemStorage);
                 }
-
-                CheckCustomVanityUnlockConditionsMet(null);
             }
 
             return _localVanityItemStorage;
+        }
+    }
+
+    private AllVanityGroupsToUnlock _allVanityGroupsToUnlock;
+    public AllVanityGroupsToUnlock AllVanityGroupsToUnlock
+    {
+        get
+        {
+            if (_allVanityGroupsToUnlock != null)
+                return _allVanityGroupsToUnlock;
+ 
+            if (!File.Exists(Paths.VanityUnlockGroupsFilePath))
+            {
+                _allVanityGroupsToUnlock = new AllVanityGroupsToUnlock();
+
+                if (Plugin.IsAllVanityLoaded)
+                    File.WriteAllText(Paths.VanityUnlockGroupsFilePath, JsonConvert.SerializeObject(_allVanityGroupsToUnlock, Formatting.Indented));
+                
+                return _allVanityGroupsToUnlock;
+            }
+        
+            _logger.Msg(ConsoleColor.Green, $"Loading VanityGroupUnlockData from disk at: {Paths.VanityUnlockGroupsFilePath}");
+            
+            var json = File.ReadAllText(Paths.VanityUnlockGroupsFilePath);
+
+            _allVanityGroupsToUnlock = JsonConvert.DeserializeObject<AllVanityGroupsToUnlock>(json);
+            
+            return _allVanityGroupsToUnlock;
         }
     }
 
@@ -66,37 +91,11 @@ public class LocalVanityItemManager
 
     private void OnExpeditionCompleted(ExpeditionCompletionData data)
     {
-        CheckCustomVanityUnlockConditionsMet(data);
-
         if (!data.Success)
             return;
 
         CheckFirstTimeExpeditionCompletion(data);
         CheckTotalUniqueCompletionsRequirementMet(data);
-    }
-
-    private void CheckCustomVanityUnlockConditionsMet(ExpeditionCompletionData? data)
-    {
-        foreach(var method in LocalVanityUnlocker.unlockMethods)
-        {
-            try
-            {
-                var toDrop = method?.Invoke(data);
-
-                if (toDrop == null)
-                    continue;
-                
-                foreach(var template in toDrop)
-                {
-                    Dropper.TryDropCustomItem(LocalVanityItemPlayerData, template);
-                }
-            }
-            catch(Exception ex)
-            {
-                _logger.Error($"Custom Vanity Unlock Condition threw an exception (continuing ...):");
-                _logger.Exception(ex);
-            }
-        }
     }
 
     private void CheckTotalUniqueCompletionsRequirementMet(ExpeditionCompletionData data)

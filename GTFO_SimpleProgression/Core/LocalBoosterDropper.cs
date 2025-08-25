@@ -39,6 +39,13 @@ public class LocalBoosterDropper
 
         _logger.Info($"Setting up {nameof(LocalBoosterDropper)} ...");
 
+        Load();
+
+        Inited = true;
+    }
+
+    internal void Load()
+    {
         BoosterImplantTemplateDataBlock[] templates = BoosterImplantTemplateDataBlock.GetAllBlocks();
 
         MutedTemplates = templates.Where(t => t.ImplantCategory == BoosterImplantCategory.Muted).ToArray();
@@ -52,13 +59,10 @@ public class LocalBoosterDropper
         {
             LocalBoosterManager.Instance.Disabled = true;
             _logger.Msg(ConsoleColor.Magenta, $"{nameof(LocalBoosterDropper)}.{nameof(Init)}() complete, no templates set -> boosters disabled!");
-        }
-        else
-        {
-            _logger.Msg(ConsoleColor.Magenta, $"{nameof(LocalBoosterDropper)}.{nameof(Init)}() complete, retrieved {MutedTemplates.Length} Muted, {BoldTemplates.Length} Bold and {AgrressiveTemplates.Length} Agrressive Templates as well as {Effects?.Length} Effects and {Conditions?.Length} Conditions.");
+            return;
         }
 
-        Inited = true;
+        _logger.Msg(ConsoleColor.Magenta, $"{nameof(LocalBoosterDropper)}.{nameof(Init)}() complete, retrieved {MutedTemplates.Length} Muted, {BoldTemplates.Length} Bold and {AgrressiveTemplates.Length} Agrressive Templates as well as {Effects?.Length} Effects and {Conditions?.Length} Conditions.");
     }
 
     public static int BOOSTER_DROP_MAX_REROLL_COUNT { get; internal set; } = 25;
