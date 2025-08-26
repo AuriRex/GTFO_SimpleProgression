@@ -8,6 +8,8 @@ namespace SimpleProgression.Core;
 
 public class LocalVanityItemDropper
 {
+    public static event Action<LocalVanityItemDropper> OnSetupDone;
+    
     private static LocalVanityItemDropper _instance;
     public static LocalVanityItemDropper Instance => _instance ??= new LocalVanityItemDropper(Plugin.L);
 
@@ -41,6 +43,8 @@ public class LocalVanityItemDropper
         LoadTemplatesGroupsAndDropData();
 
         IsSetup = true;
+
+        OnSetupDone?.Invoke(this);
     }
 
     internal void LoadTemplatesGroupsAndDropData()
@@ -119,10 +123,12 @@ public class LocalVanityItemDropper
         return true;
     }
 
-    internal bool TryDropCustomItem(LocalVanityItemStorage playerData, VanityItemsTemplateDataBlock template, bool silentDrop = false, bool doDropAlreadyOwnedItem = false)
+    public bool TryDropCustomItem(VanityItemsTemplateDataBlock template, bool silentDrop = false, bool doDropAlreadyOwnedItem = false)
     {
         InitCheck();
 
+        var playerData = LocalVanityItemManager.Instance.LocalVanityItemPlayerData;
+        
         if (doDropAlreadyOwnedItem || playerData.Items.FirstOrDefault(item => item.IsCustom && item.CustomKey == template.name) == null)
         {
             var item = new LocalVanityItemStorage.LocalVanityItem
