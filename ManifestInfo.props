@@ -8,7 +8,7 @@
     </PropertyGroup>
     <ItemGroup>
         <!-- Add the Dependency strings here, one for each dependency -->
-        <TSDependencyStrings Include="BepInEx-BepInExPack_GTFO-3.2.1" InProject="false" />
+        <TSDependencyStrings Include="BepInEx-BepInExPack_GTFO-3.2.2" InProject="false" />
         <TSDependencyStrings Include="AuriRex-Clonesoft_Json-13.0.0" InProject="false" />
         <!-- <TSDependencyStrings Include="Some-Other-Dependency-1.2.3" InProject="false" /> -->
     </ItemGroup>

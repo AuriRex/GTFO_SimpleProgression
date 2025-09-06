@@ -1,14 +1,18 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
+using Clonesoft.Json;
 using DropServer;
+using Globals;
 using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
 using SimpleProgression;
 using SimpleProgression.Core;
 using SimpleProgression.Impl;
+using SimpleProgression.Models;
 
 [assembly: AssemblyVersion(Plugin.VERSION)]
 [assembly: AssemblyFileVersion(Plugin.VERSION)]
@@ -29,6 +33,9 @@ public class Plugin : BasePlugin
 
     private static readonly Harmony _harmony = new(GUID);
 
+    private const string CONFIG_FILE_NAME = "SimpleProgression_Config.json";
+    internal static SPConfig SPConfig = new();
+    
     internal static bool IsAllVanityLoaded => IL2CPPChainloader.Instance.Plugins.Any(
         kvp => string.Equals(kvp.Key, ALLVANITY_GUID, StringComparison.InvariantCultureIgnoreCase));
     
@@ -37,6 +44,8 @@ public class Plugin : BasePlugin
         L = new Logger(Log);
         Log.LogMessage($"Initializing {MOD_NAME}");
 
+        LoadConfig();
+        
         ClassInjector.RegisterTypeInIl2Cpp<LocalDropServerAPI>(new RegisterTypeOptions
         {
             Interfaces = new[] { typeof(IDropServerClientAPI) },
@@ -46,8 +55,34 @@ public class Plugin : BasePlugin
         _harmony.PatchAll(Assembly.GetExecutingAssembly());
     }
 
+    private void LoadConfig()
+    {
+        try
+        {
+            var path = Path.Combine(BepInEx.Paths.ConfigPath, CONFIG_FILE_NAME);
+
+            if (File.Exists(path))
+            {
+                SPConfig = JsonConvert.DeserializeObject<SPConfig>(path);
+                return;
+            }
+
+            var json = JsonConvert.SerializeObject(new SPConfig(), Formatting.Indented);
+            File.WriteAllText(path, json);
+        }
+        catch (Exception ex)
+        {
+            Log.LogError($"Error while loading config file: {ex.GetType().FullName}: {ex.Message}");
+            Log.LogWarning($"StackTrace:\n{ex.StackTrace}");
+            SPConfig = new();
+        }
+    }
+
     internal static void OnDataBlocksReady()
     {
+        if (SPConfig.UnlockAllLevels)
+            Global.AllowFullRundown = true;
+        
         try
         {
             LocalVanityItemDropper.Instance.Init();

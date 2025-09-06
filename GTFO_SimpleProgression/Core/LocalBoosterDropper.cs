@@ -105,17 +105,19 @@ public class LocalBoosterDropper
             count++;
         } while (template == null || UnityEngine.Random.Range(0f, 1f) > weight);
 
+        var config = Plugin.SPConfig.DropRandomization;
+        
         switch (category)
         {
             default:
             case SaveBoosterImplantCategory.Muted:
-                maxUses = 1; // 1
+                maxUses = UnityEngine.Random.Range(config.MutedUsesMin, config.MutedUsesMax + 1); // 1
                 break;
             case SaveBoosterImplantCategory.Bold:
-                maxUses = UnityEngine.Random.Range(1, 3); // 1-2
+                maxUses = UnityEngine.Random.Range(config.BoldUsesMin, config.BoldUsesMax + 1); // 1-2
                 break;
             case SaveBoosterImplantCategory.Aggressive:
-                maxUses = UnityEngine.Random.Range(2, 4); // 2-3
+                maxUses = UnityEngine.Random.Range(config.AggressiveUsesMin, config.AggressiveUsesMax + 1); // 2-3
                 break;
         }
 

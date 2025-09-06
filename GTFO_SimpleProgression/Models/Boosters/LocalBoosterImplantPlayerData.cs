@@ -10,8 +10,8 @@ namespace SimpleProgression.Models.Boosters;
 
 public class LocalBoosterImplantPlayerData
 {
-    public static int CurrencyNewBoosterCost { get; set; } = 1000;
-    public static float CurrencyGainMultiplier { get; set; } = 1f;
+    public static int CurrencyNewBoosterCost => Plugin.SPConfig.NewBoosterDropCost > 0 ? Plugin.SPConfig.NewBoosterDropCost : 1_000; // 1_000;
+    public static float CurrencyGainMultiplier => Plugin.SPConfig.ArtifactRewardMultiplier; // 1f;
 
     /// <summary>
     /// Muted Boosters
@@ -59,7 +59,7 @@ public class LocalBoosterImplantPlayerData
     }
 
     /// <summary>
-    /// Acknowledge newly aquired boosters. (Done by closing the popup in game)
+    /// Acknowledge newly acquired boosters. (Done by closing the popup in game)
     /// </summary>
     /// <param name="boostersToAcknowledge"></param>
     public void AcknowledgeBoostersWithIds(uint[] boostersToAcknowledge)
@@ -88,7 +88,7 @@ public class LocalBoosterImplantPlayerData
     }
 
     /// <summary>
-    /// Use up 1 charge nad remove if they're used up
+    /// Use up 1 charge and remove if they're used up
     /// </summary>
     /// <param name="boostersToBeConsumed"></param>
     public void ConsumeBoostersWithIds(uint[] boostersToBeConsumed)
@@ -377,7 +377,8 @@ public class LocalBoosterImplantPlayerData
 
         public static int GetMaxBoostersInCategory()
         {
-            return MAX_BOOSTERS_R6;
+            return (int) Plugin.SPConfig.MaxBoosterCountPerCategory;
+            //return MAX_BOOSTERS_R6;
         }
     }
 }
