@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using static Il2CppSystem.Globalization.CultureInfo;
 
 namespace SimpleProgression.Models.Progression;
 
@@ -139,13 +138,7 @@ public class LocalRundownProgression
 		{
 			var expeditionKey = expKvp.Key;
 			var expedition = expKvp.Value;
-			var bgExpedition = new RundownProgression.Expedition(ClassInjector.DerivedConstructorPointer<RundownProgression.Expedition>());
-
-			bgExpedition.AllLayerCompletionCount = expedition.AllLayerCompletionCount;
-				
-			SetArtifactHeat(bgExpedition, expedition);
-
-			bgExpedition.Layers = expedition.Layers.ToBaseGameLayers();
+			var bgExpedition = expedition.ToBaseGame();
 
 			rundownProgression.Expeditions.Add(expeditionKey, bgExpedition);
 		}
@@ -153,11 +146,6 @@ public class LocalRundownProgression
 		return rundownProgression;
 	}
 
-	[MethodImpl(MethodImplOptions.NoInlining)]
-	private void SetArtifactHeat(RundownProgression.Expedition bgExp, Expedition cExp)
-	{
-		bgExp.ArtifactHeat = cExp.ArtifactHeat;
-	}
 
 	public Expedition GetOrAdd(Dictionary<string, Expedition> dict, string keyName)
 	{
@@ -191,11 +179,27 @@ public class LocalRundownProgression
 
 		public RundownProgression.Expedition ToBaseGame()
 		{
-			return new RundownProgression.Expedition(ClassInjector.DerivedConstructorPointer<RundownProgression.Expedition>())
+			var exp = new RundownProgression.Expedition(ClassInjector.DerivedConstructorPointer<RundownProgression.Expedition>())
 			{
 				AllLayerCompletionCount = this.AllLayerCompletionCount,
 				Layers = this.Layers?.ToBaseGameLayers() ?? new LayerSet<RundownProgression.Expedition.Layer>()
 			};
+
+			SetArtifactHeat(exp);
+			
+			return exp;
+		}
+		
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void SetArtifactHeat(RundownProgression.Expedition bgExp)
+		{
+			if (Plugin.SPConfig.ForceOneHundredArtifactHeat)
+			{
+				bgExp.ArtifactHeat = 1f;
+				return;
+			}
+		
+			bgExp.ArtifactHeat = ArtifactHeat;
 		}
 
 		public class Layer

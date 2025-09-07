@@ -7,6 +7,11 @@ public class SPConfig
     public float ArtifactRewardMultiplier { get; set; } = 1f;
     public int NewBoosterDropCost { get; set; } = 1_000;
 
+    /// <summary>
+    /// Forces artifact heat to be 100% for each level.<br/>
+    /// (Real values are still being calculated every time artifacts are collected / a level is completed)
+    /// </summary>
+    public bool ForceOneHundredArtifactHeat { get; set; }
     public RandomizationOptions DropRandomization { get; set; } = new();
     
     public class RandomizationOptions

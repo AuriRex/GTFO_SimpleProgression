@@ -6,6 +6,7 @@ using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using Clonesoft.Json;
 using DropServer;
+using DropServer.BoosterImplants;
 using Globals;
 using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
@@ -63,12 +64,13 @@ public class Plugin : BasePlugin
 
             if (File.Exists(path))
             {
-                SPConfig = JsonConvert.DeserializeObject<SPConfig>(path);
+                var json = File.ReadAllText(path);
+                SPConfig = JsonConvert.DeserializeObject<SPConfig>(json);
                 return;
             }
 
-            var json = JsonConvert.SerializeObject(new SPConfig(), Formatting.Indented);
-            File.WriteAllText(path, json);
+            var jsonNew = JsonConvert.SerializeObject(new SPConfig(), Formatting.Indented);
+            File.WriteAllText(path, jsonNew);
         }
         catch (Exception ex)
         {
@@ -82,6 +84,15 @@ public class Plugin : BasePlugin
     {
         if (SPConfig.UnlockAllLevels)
             Global.AllowFullRundown = true;
+        
+        var maxCount = (int)Plugin.SPConfig.MaxBoosterCountPerCategory;
+        BoosterImplantConstants.BASIC_INVENTORY_LIMIT = maxCount;
+        BoosterImplantConstants.ADVANCED_INVENTORY_LIMIT = maxCount;
+        BoosterImplantConstants.SPECIALIZED_INVENTORY_LIMIT = maxCount;
+        for (var i = 0; i < 3; i++)
+        {
+            BoosterImplantConstants.InventoryLimitPerCategory[i] = maxCount;
+        }
         
         try
         {
