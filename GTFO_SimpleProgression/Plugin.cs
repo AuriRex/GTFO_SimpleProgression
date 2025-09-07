@@ -86,12 +86,10 @@ public class Plugin : BasePlugin
             Global.AllowFullRundown = true;
         
         var maxCount = (int)Plugin.SPConfig.MaxBoosterCountPerCategory;
-        BoosterImplantConstants.BASIC_INVENTORY_LIMIT = maxCount;
-        BoosterImplantConstants.ADVANCED_INVENTORY_LIMIT = maxCount;
-        BoosterImplantConstants.SPECIALIZED_INVENTORY_LIMIT = maxCount;
         for (var i = 0; i < 3; i++)
         {
             BoosterImplantConstants.InventoryLimitPerCategory[i] = maxCount;
+            BoosterImplantConstants.ARTIFACT_TO_BOOSTER_RATIO_FOR_FULL_HEAT[i] = 0.15f;
         }
         
         try
