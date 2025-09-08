@@ -4,7 +4,7 @@
         <TSAuthor>AuriRex</TSAuthor>
         <TSVersion>2025.1.0</TSVersion> <!-- TSVersion empty = GitInfo used instead (if available; check nuget) -->
         <TSWebsite>https://github.com/AuriRex/GTFO_SimpleProgression</TSWebsite>
-        <TSDescription>Description</TSDescription>
+        <TSDescription>A LocalProgression implementation, including local vanity item and booster drops.</TSDescription>
     </PropertyGroup>
     <ItemGroup>
         <!-- Add the Dependency strings here, one for each dependency -->
