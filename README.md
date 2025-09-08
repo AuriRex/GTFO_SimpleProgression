@@ -45,6 +45,7 @@ There are a few other things for rundown devs to modify in this config file:
 ```json
 {
   "UnlockAllLevels": false,
+  "ShowScrambledTimer": false,
   "MaxBoosterCountPerCategory": 20,
   "ArtifactRewardMultiplier": 1.0,
   "NewBoosterDropCost": 1000,
@@ -61,6 +62,7 @@ There are a few other things for rundown devs to modify in this config file:
 ```
 
 * `UnlockAllLevels`: If progression lock should be ignored.
+* `ShowScrambledTimer`: Shows a glitching element below the rundown header.
 * `MaxBoosterCountPerCategory`: The amount of unique boosters per category should be allowed.
 * `ArtifactRewardMultiplier`: This value directly multiplies the gained booster currency awarded by collected artifacts.  
   (Note: Using this will desync the visual booster value on the warden intel and on the end screen.)

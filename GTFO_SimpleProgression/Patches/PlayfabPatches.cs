@@ -13,8 +13,8 @@ internal static class PlayFabManager__TryGetRundownTimerData__Patch
     public static bool Prefix(ref bool __result, out RundownTimerData data)
     {
         data = new RundownTimerData();
-        data.ShowScrambledTimer = true;
-        data.ShowCountdownTimer = true;
+        data.ShowScrambledTimer = Plugin.SPConfig.ShowScrambledTimer;
+        data.ShowCountdownTimer = Plugin.SPConfig.ShowScrambledTimer;
         var theDate = DateTime.Today.AddDays(20);
         data.UTC_Target_Day = theDate.Day;
         data.UTC_Target_Hour = theDate.Hour;

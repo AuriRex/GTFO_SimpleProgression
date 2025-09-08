@@ -3,6 +3,7 @@ namespace SimpleProgression.Models;
 public class SPConfig
 {
     public bool UnlockAllLevels { get; set; }
+    public bool ShowScrambledTimer { get; set; }
     public uint MaxBoosterCountPerCategory { get; set; } = 20;
     public float ArtifactRewardMultiplier { get; set; } = 1f;
     public int NewBoosterDropCost { get; set; } = 1_000;
