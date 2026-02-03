@@ -2,7 +2,7 @@
 
 namespace SimpleProgression;
 
-internal class Paths
+public static class Paths
 {
     private static string _saveFolderPath;
     public static string SaveFolderPath

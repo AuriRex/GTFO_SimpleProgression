@@ -5,7 +5,7 @@ namespace SimpleProgression.Patches;
 
 [HarmonyWrapSafe]
 [HarmonyPatch(typeof(GS_InLevel), nameof(GS_InLevel.Enter))]
-public class GS_InLevel_Enter_Patch
+public class GS_InLevel__Enter__Patch
 {
     public static void Postfix()
     {

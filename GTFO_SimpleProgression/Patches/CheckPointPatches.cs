@@ -5,7 +5,7 @@ namespace SimpleProgression.Patches;
 
 [HarmonyWrapSafe]
 [HarmonyPatch(typeof(CheckpointManager), nameof(CheckpointManager.StoreCheckpoint))]
-public class CheckpointManager_StoreCheckpoint_Patch
+public class CheckpointManager__StoreCheckpoint__Patch
 {
     public static void Prefix()
     {
@@ -15,7 +15,7 @@ public class CheckpointManager_StoreCheckpoint_Patch
 
 [HarmonyWrapSafe]
 [HarmonyPatch(typeof(CheckpointManager), nameof(CheckpointManager.ReloadCheckpoint))]
-public class CheckpointManager_ReloadCheckpoint_Patch
+public class CheckpointManager__ReloadCheckpoint__Patch
 {
     public static void Prefix()
     {

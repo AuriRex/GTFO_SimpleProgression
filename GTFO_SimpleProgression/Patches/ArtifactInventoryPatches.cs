@@ -6,7 +6,7 @@ namespace SimpleProgression.Patches;
 
 [HarmonyWrapSafe]
 [HarmonyPatch(typeof(ArtifactInventory), nameof(ArtifactInventory.OnStateChange))]
-public static class ArtifactInventory_OnStateChange_Patch
+public static class ArtifactInventory__OnStateChange__Patch
 {
     public static void Postfix(ArtifactInventory __instance)
     {

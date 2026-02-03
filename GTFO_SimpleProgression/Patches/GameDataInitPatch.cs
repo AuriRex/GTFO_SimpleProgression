@@ -1,11 +1,13 @@
+using System;
 using GameData;
 using HarmonyLib;
 using SimpleProgression.Core;
 
 namespace SimpleProgression.Patches;
 
+[HarmonyWrapSafe]
 [HarmonyPatch(typeof(GameDataInit), nameof(GameDataInit.Initialize))]
-public class GameDataInitPatch
+public class GameDataInit__Initialize__Patch
 {
     private static bool _first = true;
     public static void Postfix()
@@ -17,7 +19,14 @@ public class GameDataInitPatch
         }
 
         Plugin.L.Warning($"MTFO Hot-Relead triggered, reloading templates, groups and drop data ...");
-        LocalVanityItemDropper.Instance.LoadTemplatesGroupsAndDropData();
-        LocalBoosterDropper.Instance.Load();
+        try
+        {
+            LocalVanityItemDropper.Instance.LoadTemplatesGroupsAndDropData();
+            LocalBoosterDropper.Instance.Load();
+        }
+        catch(Exception ex)
+        {
+            Plugin.L.Exception(ex);
+        }
     }
 }

@@ -22,6 +22,7 @@ using SimpleProgression.Models;
 namespace SimpleProgression;
 
 [BepInPlugin(GUID, MOD_NAME, VERSION)]
+// ReSharper disable once ClassNeverInstantiated.Global
 public class Plugin : BasePlugin
 {
     public const string ALLVANITY_GUID = "dev.aurirex.gtfo.allvanity";
