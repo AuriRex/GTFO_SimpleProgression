@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TSName>Simple_Progression</TSName>
         <TSAuthor>AuriRex</TSAuthor>
-        <TSVersion>2025.1.0</TSVersion> <!-- TSVersion empty = GitInfo used instead (if available; check nuget) -->
+        <TSVersion>2026.1.0</TSVersion> <!-- TSVersion empty = GitInfo used instead (if available; check nuget) -->
         <TSWebsite>https://github.com/AuriRex/GTFO_SimpleProgression</TSWebsite>
         <TSDescription>A LocalProgression implementation, including local vanity item and booster drops.</TSDescription>
     </PropertyGroup>

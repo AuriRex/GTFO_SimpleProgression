@@ -1,3 +1,3 @@
 # Changelog
-## v0.0.1
-* Initial project created
+## v2026.1.0
+* Initial release
